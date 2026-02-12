@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>酒桌模拟器 - 春节特别版</title>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --red: #C53030;
+      --red-dark: #9B2C2C;
+      --red-deeper: #742A2A;
+      --red-bg: #A51D1D;
+      --red-light: #E53E3E;
+      --red-soft: #FED7D7;
+      --gold: #C9A84C;
+      --gold-light: #ECD9A0;
+      --gold-dark: #A68A2E;
+      --gold-border: rgba(201,168,76,0.5);
+      --card-bg: #FFFDF8;
+      --card-bg-alt: #FBF6EE;
+      --card-border: #EDE4D4;
+      --text-dark: #2D1B1B;
+      --text-body: #4A3728;
+      --text-muted: #A09080;
+      --text-red: #C53030;
+      --text-gold: #8B7320;
+      --green: #38A169;
+      --error: #E53E3E;
+      --warning: #DD6B20;
+      --font-title: 'Ma Shan Zheng', cursive;
+      --font-body: 'Noto Sans SC', sans-serif;
+      --r-sm: 8px;
+      --r-md: 14px;
+      --r-lg: 20px;
+      --r-xl: 24px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--red-bg);
+      color: var(--text-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── 背景 ── */
+    .bg-layer {
+      position: fixed; inset: 0;
+      background: linear-gradient(175deg, #C53030 0%, #9B2C2C 50%, #742A2A 100%);
+      z-index: -2;
+    }
+    .bg-layer::after {
+      content: '催婚了吗 年终奖多少 买房了没 考公了吗 对象呢 月薪多少 什么时候结婚 怎么又胖了 考研上岸没 隔壁小王都结婚了 二胎考虑吗 35岁危机 躺平了 回老家发展吧 被裁员了吗';
+      position: absolute; inset: 0;
+      font-family: var(--font-body); font-size: 16px; font-weight: 700;
+      color: rgba(255,255,255,0.045);
+      line-height: 3; letter-spacing: 16px; word-break: break-all;
+      overflow: hidden; z-index: -1; padding: 20px;
+      transform: rotate(-10deg) scale(1.4); transform-origin: center;
+    }
+
+    #game-container {
+      max-width: 420px; margin: 0 auto;
+      min-height: 100vh; position: relative;
+      display: flex; flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ── 状态栏 ── */
+    #status-bar {
+      display: none; justify-content: space-around;
+      padding: 10px 16px;
+      background: var(--card-bg);
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--card-border);
+      box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    }
+    #status-bar.visible { display: flex; }
+    .stat-item { text-align: center; flex: 1; }
+    .stat-item + .stat-item { border-left: 1px solid var(--card-border); }
+    .stat-label { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 500; }
+    .stat-value { font-size: 20px; font-weight: 700; color: var(--text-red); font-family: var(--font-title); }
+
+    /* ── 屏幕 ── */
+    .screen { display: none; flex: 1; padding: 12px; animation: fadeIn 0.4s ease; }
+    .screen.active { display: flex; flex-direction: column; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+
+    /* ── 主卡片 ── */
+    .card-main {
+      background: var(--card-bg);
+      border: 2px solid var(--gold);
+      border-radius: var(--r-xl);
+      padding: 24px 20px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+      position: relative;
+    }
+    .card-main::after {
+      content: ''; position: absolute; inset: 5px;
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: calc(var(--r-xl) - 3px);
+      pointer-events: none;
+    }
+
+    /* ── 普通卡片 ── */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    /* ── 对话卡片 ── */
+    .card-dialogue {
+      background: var(--card-bg);
+      border: 1.5px solid var(--gold-border);
+      border-radius: var(--r-lg);
+      padding: 20px 18px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    /* ── 红色主按钮 ── */
+    .btn-red {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 13px 40px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(197,48,48,0.3);
+      letter-spacing: 1px;
+    }
+    .btn-red:hover { background: var(--red-light); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(197,48,48,0.35); }
+    .btn-red:active { transform: translateY(0); }
+
+    /* ── 金色按钮 ── */
+    .btn-gold {
+      background: var(--gold-light);
+      color: var(--text-dark);
+      border: 1.5px solid var(--gold);
+      padding: 12px 32px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-gold:hover { background: var(--gold); color: #fff; }
+
+    /* ── 选项按钮 ── */
+    .btn-option {
+      background: #FFF;
+      color: var(--text-body);
+      border: 1px solid var(--card-border);
+      border-left: 3px solid var(--red);
+      padding: 13px 14px;
+      font-size: 14px;
+      font-family: var(--font-body);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      line-height: 1.5;
+    }
+    .btn-option:hover {
+      background: var(--card-bg-alt);
+      border-left-color: var(--gold);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transform: translateX(3px);
+    }
+    .btn-option:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* ── 次要按钮 ── */
+    .btn-secondary {
+      background: #FFF;
+      color: var(--text-body);
+      border: 1px solid var(--card-border);
+      padding: 10px 18px;
+      font-size: 13px;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    .btn-secondary:hover { border-color: var(--gold); background: var(--card-bg-alt); }
+
+    /* ── 头像 ── */
+    .avatar-frame {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      background: var(--card-bg-alt);
+    }
+    .avatar-frame.clickable { cursor: pointer; }
+    .avatar-frame.clickable:hover { transform: scale(1.12); border-color: var(--red); box-shadow: 0 3px 12px rgba(197,48,48,0.25); }
+    .avatar-frame .avatar-bg { position: absolute; inset: 0; border-radius: 50%; }
+    .avatar-frame .avatar-emoji { font-size: 26px; position: relative; z-index: 1; }
+    .avatar-frame-sm { width: 40px; height: 40px; }
+    .avatar-frame-sm .avatar-emoji { font-size: 20px; }
+    .avatar-frame-lg { width: 68px; height: 68px; }
+    .avatar-frame-lg .avatar-emoji { font-size: 34px; }
+
+    /* ── 反应卡 ── */
+    .card-reaction {
+      background: var(--card-bg-alt);
+      border: 1px solid var(--card-border);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      padding: 12px 14px;
+      animation: slideUp 0.3s ease;
+    }
+
+    /* ── 成就卡 ── */
+    .achievement-card {
+      background: #FFF;
+      border: 1px solid var(--card-border);
+      border-radius: var(--r-md);
+      padding: 10px 12px;
+      text-align: center;
+      transition: all 0.2s ease;
+      min-width: 80px;
+    }
+    .achievement-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+
+    /* ── 标签 ── */
+    .tag {
+      display: inline-block;
+      background: var(--red-soft);
+      color: var(--text-red);
+      font-size: 11px; font-weight: 500;
+      padding: 2px 10px;
+      border-radius: 20px;
+    }
+    .tag-gold { background: rgba(201,168,76,0.12); color: var(--text-gold); }
+
+    /* ── 分隔线 ── */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+    .divider span { color: var(--text-muted); font-size: 11px; font-weight: 500; letter-spacing: 1px; }
+
+    /* ── 进度条 ── */
+    .progress-bar { height: 3px; background: var(--card-border); border-radius: 2px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--red-light)); border-radius: 2px; transition: width 0.4s ease; }
+
+    /* ── 酒杯 ── */
+    .glass-container {
+      width: 28px; height: 44px;
+      border: 2px solid var(--gold); border-top: none;
+      border-radius: 0 0 6px 6px;
+      position: relative; overflow: hidden; cursor: pointer;
+      background: rgba(255,255,255,0.4);
+    }
+    .glass-fill { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #D4A017, #F0C040, #FFE880); transition: height 0.4s ease; }
+
+    /* ── 弹窗 ── */
+    .popup-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(3px);
+      z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn 0.25s ease;
+    }
+    .popup-card {
+      background: var(--card-bg);
+      border: 2px solid var(--gold);
+      border-radius: var(--r-xl);
+      padding: 28px 22px;
+      max-width: 340px; width: 88%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      text-align: center;
+      animation: slideUp 0.35s ease;
+      position: relative;
+    }
+    .popup-card::after {
+      content: ''; position: absolute; inset: 5px;
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: calc(var(--r-xl) - 3px);
+      pointer-events: none;
+    }
+
+    /* ── 圆桌 ── */
+    .round-table {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: var(--card-bg-alt);
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* ── 信息行 ── */
+    .info-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0;
+    }
+    .info-row + .info-row { border-top: 1px solid var(--card-border); }
+    .info-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--red-soft);
+      color: var(--text-red);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .info-label { font-size: 11px; color: var(--text-muted); }
+    .info-value { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+
+    /* ── 数值展示 ── */
+    .stats-row {
+      display: flex; justify-content: space-around;
+      padding: 14px 0;
+      background: var(--card-bg-alt);
+      border-radius: var(--r-md);
+    }
+    .stats-row .stat-col { text-align: center; flex: 1; }
+    .stats-row .stat-col + .stat-col { border-left: 1px solid var(--card-border); }
+    .stats-row .stat-num { font-size: 24px; font-weight: 700; color: var(--text-red); font-family: var(--font-title); }
+    .stats-row .stat-lbl { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+
+    /* ── 响应式 ── */
+    @media (min-width: 768px) { #game-container { max-width: 460px; } .screen { padding: 20px; } }
+    @media (max-width: 360px) { .btn-red { padding: 11px 28px; font-size: 15px; } .avatar-frame { width: 46px; height: 46px; } .avatar-frame .avatar-emoji { font-size: 22px; } }
+  </style>
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <div id="status-bar">
+    <div class="stat-item"><div class="stat-label">😎 面子</div><div class="stat-value" id="face-score">50</div></div>
+    <div class="stat-item"><div class="stat-label">🧠 心态</div><div class="stat-value" id="mood-score">50</div></div>
+    <div class="stat-item"><div class="stat-label">🍺 酒精度</div><div class="stat-value" id="alcohol-level">0</div></div>
+  </div>
+  <div id="game-container">
+    <div id="screen-cover" class="screen active"></div>
+    <div id="screen-identity" class="screen"></div>
+    <div id="screen-intro" class="screen"></div>
+    <div id="screen-seating" class="screen"></div>
+    <div id="screen-dialogue" class="screen"></div>
+    <div id="screen-toast" class="screen"></div>
+    <div id="screen-result" class="screen"></div>
+  </div>
+  <button id="bgm-toggle" style="position:fixed;bottom:16px;right:16px;z-index:200;background:var(--card-bg);border:1.5px solid var(--gold);color:var(--text-red);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;display:none;" aria-label="BGM">🔇</button>
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

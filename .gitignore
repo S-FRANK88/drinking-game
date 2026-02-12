@@ -1,0 +1,4 @@
+# 绝对不要提交 API Key
+.dev.vars
+node_modules/
+.wrangler/
