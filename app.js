@@ -82,12 +82,12 @@
     const p = engine.state.player;
     screens.identity.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:82vh;">
-        <div class="card-main" style="width:100%;max-width:380px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <h2 style="font-family:var(--font-title);font-size:26px;color:var(--text-red);letter-spacing:3px;">地球原住民身份证</h2>
-            <span class="tag" style="font-size:13px;padding:3px 12px;">福</span>
+        <div class="card-main id-card-bg" style="width:100%;max-width:380px;">
+          <div class="id-card-seal">福</div>
+          <div class="id-card-header">
+            <h2 class="id-card-title">春节归乡通行证</h2>
+            <div class="id-card-subtitle">SPRING FESTIVAL HOMECOMING PASS</div>
           </div>
-          <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:20px;">EARTH NATIVE ID CARD</div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
             <div>
@@ -111,28 +111,30 @@
             </div>
           </div>
 
-          <div class="divider"><span>TRAITS / 备注</span></div>
+          <div class="divider"><span>PROFILE / 个人档案</span></div>
 
           <div style="display:flex;flex-direction:column;gap:0;margin-bottom:20px;">
             <div class="info-row">
-              <div class="info-icon">学</div>
+              <div class="info-icon">🎓</div>
               <div style="flex:1;display:flex;align-items:center;justify-content:space-between;">
-                <div><div class="info-value" id="edu-display">${p.education}</div><div class="info-label">学历背景</div></div>
+                <div><div class="info-value" id="edu-display">${p.education}</div><div class="info-label">学历 / EDUCATION</div></div>
                 <button class="btn-secondary" id="btn-dropout" style="padding:2px 8px;font-size:11px;border-radius:4px;">📉 退学</button>
               </div>
             </div>
             <div class="info-row">
               <div class="info-icon">💕</div>
               <div style="flex:1;display:flex;align-items:center;justify-content:space-between;">
-                <div><div class="info-value" id="rel-display">${p.relationshipStatus}</div><div class="info-label">感情状态</div></div>
+                <div><div class="info-value" id="rel-display">${p.relationshipStatus}</div><div class="info-label">感情 / STATUS</div></div>
                 <button class="btn-secondary" id="btn-rel-random" style="padding:2px 8px;font-size:11px;border-radius:4px;">🎲 随机</button>
               </div>
             </div>
             <div class="info-row">
               <div class="info-icon">🏠</div>
-              <div><div class="info-value">${p.hometown}</div><div class="info-label">老家</div></div>
+              <div><div class="info-value">${p.hometown}</div><div class="info-label">老家 / HOMETOWN</div></div>
             </div>
           </div>
+
+          <div class="divider"><span>STATS / 初始属性</span></div>
 
           <div class="stats-row" style="margin-bottom:20px;">
             <div class="stat-col"><div class="stat-lbl">😎 面子</div><div class="stat-num">50</div></div>

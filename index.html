@@ -110,6 +110,63 @@
       pointer-events: none;
     }
 
+    /* ── 身份卡祥云背景 ── */
+    .id-card-bg {
+      position: relative;
+      overflow: hidden;
+    }
+    .id-card-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse 60px 30px at 15% 20%, rgba(201,168,76,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 80px 35px at 75% 15%, rgba(201,168,76,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 50px 25px at 40% 45%, rgba(201,168,76,0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 70px 30px at 85% 50%, rgba(201,168,76,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 55px 28px at 20% 70%, rgba(201,168,76,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 65px 32px at 60% 75%, rgba(201,168,76,0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 45px 22px at 90% 85%, rgba(201,168,76,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 75px 35px at 10% 90%, rgba(201,168,76,0.03) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .id-card-bg > * { position: relative; z-index: 1; }
+    .id-card-header {
+      text-align: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      margin-bottom: 20px;
+    }
+    .id-card-title {
+      font-family: var(--font-title);
+      font-size: 22px;
+      color: var(--text-red);
+      letter-spacing: 4px;
+      margin: 0;
+    }
+    .id-card-subtitle {
+      font-size: 10px;
+      color: var(--gold-dark);
+      letter-spacing: 3px;
+      margin-top: 4px;
+    }
+    .id-card-seal {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 48px;
+      height: 48px;
+      border: 2px solid rgba(201,168,76,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--gold);
+      z-index: 1;
+    }
+
     /* ── 普通卡片 ── */
     .card {
       background: var(--card-bg);
