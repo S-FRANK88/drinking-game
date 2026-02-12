@@ -9,7 +9,7 @@
   // 部署时替换为你的 Cloudflare Worker URL，例如：https://drinking-game-api.你的子域名.workers.dev
   // Worker 部署命令：cd worker && npx wrangler deploy
   // API Key 设置：npx wrangler secret put GEMINI_API_KEY
-  const WORKER_URL = 'https://drinkinggame.workers.dev';
+  const WORKER_URL = 'https://api.banzhang.icu';
   const USE_AI = true; // Gemini AI 已启用
 
   const dataLoader = new DataLoader(GAME_DATA);
