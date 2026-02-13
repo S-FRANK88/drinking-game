@@ -1031,8 +1031,33 @@
         </div>
       `;
 
-      const toastChance = engine.state.difficulty === 'hell' ? 0.7 : engine.state.difficulty === 'hard' ? 0.5 : 0.3;
-      if (Math.random() < toastChance && !ds.isPhaseComplete()) setTimeout(() => showToastPopup(), 1500);
+      // 按轮次和难度确定敬酒人数
+      const currentRound = ds.getCurrentRound();
+      const diff = engine.state.difficulty;
+      let toastCount = 0;
+      if (diff === 'hell') {
+        // 地狱：第1轮1人，第2轮2人，第3轮3人，第4轮4人，第5轮5人
+        toastCount = currentRound;
+      } else if (diff === 'hard') {
+        // 困难：第2轮起1人，第3轮2人，第4轮3人，第5轮4人
+        if (currentRound >= 2) toastCount = currentRound - 1;
+      } else {
+        // 普通：第3轮2人，第4轮3人
+        if (currentRound === 3) toastCount = 2;
+        else if (currentRound === 4) toastCount = 3;
+        else if (currentRound >= 5) toastCount = 0; // 第5轮结束后统一倒酒
+      }
+      
+      if (toastCount > 0 && !ds.isPhaseComplete()) {
+        let toastIndex = 0;
+        function chainToast() {
+          if (toastIndex < toastCount) {
+            toastIndex++;
+            setTimeout(() => showToastPopup(chainToast), 1500);
+          }
+        }
+        chainToast();
+      }
 
       if (dk.isGlassEmpty()) {
         document.getElementById('glass-alert').style.display = 'inline';
@@ -1045,12 +1070,15 @@
 
       setTimeout(() => {
         if (ds.isPhaseComplete()) {
-          setTimeout(() => { engine.transition('TOAST'); renderToast(); showScreen('toast'); }, 1000);
+          // 最后一轮结束，给所有亲戚倒酒
+          showFinalRefillScene(() => {
+            engine.transition('TOAST'); renderToast(); showScreen('toast');
+          });
         } else { isDialogueLocked = false; startAutoTimer(); }
       }, 2000);
     }
 
-    function showToastPopup() {
+    function showToastPopup(onComplete) {
       const popup = document.getElementById('toast-popup');
       const toastingRelative = engine.state.relatives[Math.floor(Math.random() * engine.state.relatives.length)];
       
@@ -1114,7 +1142,7 @@
               }
               
               // 喝完后显示倒酒界面
-              showRefillScene(toastingRelative);
+              showRefillScene(toastingRelative, onComplete);
             });
           });
         });
@@ -1153,12 +1181,12 @@
           }
           
           // 喝完后显示倒酒界面
-          showRefillScene(toastingRelative);
+          showRefillScene(toastingRelative, onComplete);
         });
       });
     }
     
-    function showRefillScene(toastingRelative) {
+    function showRefillScene(toastingRelative, onComplete) {
       const popup = document.getElementById('toast-popup');
       const relatives = engine.state.relatives;
       const toastingIndex = relatives.indexOf(toastingRelative);
@@ -1230,6 +1258,7 @@
               if (glassStatusEl) glassStatusEl.textContent = '🍶';
               popup.style.display = 'none';
               popup.innerHTML = '';
+              if (onComplete) onComplete();
             });
           }
         }
@@ -1267,10 +1296,67 @@
               document.getElementById('btn-close-refill-success').addEventListener('click', () => {
                 popup.style.display = 'none';
                 popup.innerHTML = '';
+                if (onComplete) onComplete();
               });
             }, 500);
           }
         });
+      });
+    }
+
+    // ── 最终倒酒环节 ──
+    function showFinalRefillScene(onDone) {
+      const popup = document.getElementById('toast-popup');
+      const relatives = engine.state.relatives;
+      const displayRelatives = relatives.length > 15 ? relatives.slice(0, 15) : relatives;
+      const cols = displayRelatives.length > 10 ? 5 : displayRelatives.length > 5 ? 5 : 3;
+      
+      // 所有人酒杯都空
+      const emptyStates = {};
+      displayRelatives.forEach((r, i) => { emptyStates[i] = false; });
+      let filledCount = 0;
+      const totalToFill = displayRelatives.length;
+      
+      popup.style.display = 'block';
+      popup.innerHTML = `
+        <div class="popup-overlay">
+          <div class="popup-card" style="max-width:500px;">
+            <p style="font-family:var(--font-title);font-size:22px;color:var(--text-red);margin-bottom:4px;">🍶 祝酒辞前，先给大家满上！</p>
+            <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px;">点击每位亲戚的酒杯倒酒 · <span id="fill-count" style="color:var(--text-red);font-weight:700;">0/${totalToFill}</span>${relatives.length > 15 ? ' · 先给前排的长辈们倒' : ''}</p>
+            <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;margin-bottom:16px;${totalToFill > 10 ? 'max-height:50vh;overflow-y:auto;' : ''}" id="final-refill-grid">
+              ${displayRelatives.map((r, i) => `
+                <div style="text-align:center;padding:6px;background:var(--card-bg-alt);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" class="final-glass" data-index="${i}">
+                  ${avatarHTML(r, 'avatar-frame-sm')}
+                  <div style="font-size:10px;color:var(--text-muted);margin:3px 0;">${r.name}</div>
+                  <div class="final-glass-icon" style="font-size:22px;">🥃</div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn-red" id="btn-final-refill-done" style="width:100%;padding:14px;font-size:16px;display:none;">开始祝酒辞 →</button>
+          </div>
+        </div>
+      `;
+      
+      document.querySelectorAll('.final-glass').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.index);
+          if (emptyStates[idx]) return;
+          emptyStates[idx] = true;
+          filledCount++;
+          el.querySelector('.final-glass-icon').textContent = '🍶';
+          el.style.opacity = '0.6';
+          document.getElementById('fill-count').textContent = `${filledCount}/${totalToFill}`;
+          
+          if (filledCount >= totalToFill) {
+            document.getElementById('btn-final-refill-done').style.display = 'block';
+          }
+        });
+      });
+      
+      document.getElementById('btn-final-refill-done')?.addEventListener('click', () => {
+        popup.style.display = 'none';
+        popup.innerHTML = '';
+        if (onDone) onDone();
       });
     }
 
