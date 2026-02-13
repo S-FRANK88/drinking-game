@@ -615,13 +615,16 @@
         <h2 style="font-family:var(--font-title);font-size:26px;color:var(--text-red);text-align:center;margin-bottom:4px;">🏮 亲戚入座</h2>
         <p style="text-align:center;color:var(--text-muted);font-size:12px;">认识一下今天酒桌上的亲戚们</p>
       </div>
-      <div id="intro-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="intro-list" style="display:flex;flex-direction:column;gap:${relatives.length > 10 ? '6px' : '10px'};${relatives.length > 10 ? 'max-height:60vh;overflow-y:auto;' : ''}"></div>
       <button class="btn-red" id="btn-intro-done" style="margin-top:20px;align-self:center;display:none;width:100%;padding:14px;font-size:17px;">开始匹配称呼 →</button>
     `;
     const list = document.getElementById('intro-list');
     const btn = document.getElementById('btn-intro-done');
 
     // 为每个亲戚生成slogan
+    const introDelay = relatives.length > 10 ? 200 : 700;
+    const showSlogan = relatives.length <= 10; // 地狱模式不生成AI slogan，太多了
+    
     for (let i = 0; i < relatives.length; i++) {
       const r = relatives[i];
       
@@ -629,66 +632,72 @@
         const card = document.createElement('div');
         card.className = 'card';
         card.style.animation = 'slideIn 0.5s ease';
+        card.style.padding = relatives.length > 10 ? '8px 12px' : '';
         card.innerHTML = `
           <div style="display:flex;align-items:center;gap:12px;">
-            ${avatarHTML(r)}
+            ${avatarHTML(r, relatives.length > 10 ? 'avatar-frame-sm' : '')}
             <div style="flex:1;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-                <span style="font-size:15px;font-weight:700;color:var(--text-dark);">${r.name}</span>
+                <span style="font-size:${relatives.length > 10 ? '13px' : '15px'};font-weight:700;color:var(--text-dark);">${r.name}</span>
                 <span class="tag">${r.title}</span>
               </div>
               <div style="font-size:12px;color:var(--text-muted);">${r.relation}</div>
               <div style="display:flex;gap:8px;margin-top:4px;">
                 ${r.traits.map(t => `<span style="font-size:11px;color:var(--text-red);">✦ ${t}</span>`).join('')}
               </div>
+              ${showSlogan ? `
               <div id="slogan-${i}" style="margin-top:6px;padding:6px 10px;background:var(--card-bg-alt);border-radius:6px;border-left:2px solid var(--gold);font-size:12px;color:var(--text-body);font-style:italic;min-height:32px;display:flex;align-items:center;">
                 <span style="color:var(--text-muted);">💬 生成中...</span>
               </div>
+              ` : ''}
             </div>
           </div>
         `;
         list.appendChild(card);
+        // 自动滚动到底部
+        if (relatives.length > 10) list.scrollTop = list.scrollHeight;
         
-        // 调用AI生成slogan
-        try {
-          const response = await fetch(`${WORKER_URL}/api/slogan`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ relative: r })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            const sloganEl = document.getElementById(`slogan-${i}`);
-            if (sloganEl && data.slogan) {
-              sloganEl.innerHTML = `<span style="color:var(--text-body);">💬 "${data.slogan}"</span>`;
+        // 调用AI生成slogan（仅非地狱模式）
+        if (showSlogan) {
+          try {
+            const response = await fetch(`${WORKER_URL}/api/slogan`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ relative: r })
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const sloganEl = document.getElementById(`slogan-${i}`);
+              if (sloganEl && data.slogan) {
+                sloganEl.innerHTML = `<span style="color:var(--text-body);">💬 "${data.slogan}"</span>`;
+              }
+            } else {
+              const sloganEl = document.getElementById(`slogan-${i}`);
+              if (sloganEl) {
+                const defaultSlogans = [
+                  '过年了，一家人要团团圆圆！',
+                  '年轻人要多回家看看！',
+                  '新的一年，要更加努力！',
+                  '家和万事兴！',
+                  '身体健康最重要！'
+                ];
+                sloganEl.innerHTML = `<span style="color:var(--text-body);">💬 "${defaultSlogans[i % defaultSlogans.length]}"</span>`;
+              }
             }
-          } else {
-            // AI失败时显示默认文案
+          } catch (error) {
+            console.error('生成slogan失败:', error);
             const sloganEl = document.getElementById(`slogan-${i}`);
             if (sloganEl) {
-              const defaultSlogans = [
-                '过年了，一家人要团团圆圆！',
-                '年轻人要多回家看看！',
-                '新的一年，要更加努力！',
-                '家和万事兴！',
-                '身体健康最重要！'
-              ];
-              sloganEl.innerHTML = `<span style="color:var(--text-body);">💬 "${defaultSlogans[i % defaultSlogans.length]}"</span>`;
+              sloganEl.innerHTML = `<span style="color:var(--text-body);">💬 "过年好！"</span>`;
             }
-          }
-        } catch (error) {
-          console.error('生成slogan失败:', error);
-          const sloganEl = document.getElementById(`slogan-${i}`);
-          if (sloganEl) {
-            sloganEl.innerHTML = `<span style="color:var(--text-body);">💬 "过年好！"</span>`;
           }
         }
         
         if (i === relatives.length - 1) {
           setTimeout(() => { btn.style.display = 'block'; }, 500);
         }
-      }, i * 700);
+      }, i * introDelay);
     }
 
     btn.addEventListener('click', () => {
@@ -705,14 +714,15 @@
     const titleOptions = engine.state.relatives.map(r => r.title);
     const relCount = engine.state.relatives.length;
     const isHard = engine.state.difficulty === 'hard';
+    const isHell = engine.state.difficulty === 'hell';
 
     screens.seating.innerHTML = `
       <div class="card-main" style="margin-bottom:16px;padding:20px;">
         <h2 style="font-family:var(--font-title);font-size:26px;color:var(--text-red);text-align:center;margin-bottom:4px;">🪑 认亲戚</h2>
-        <p style="text-align:center;color:var(--text-muted);font-size:12px;">为每个座位上的亲戚选择正确的称呼${isHard ? ' · 🔥困难模式' : ''}</p>
+        <p style="text-align:center;color:var(--text-muted);font-size:12px;">为每个座位上的亲戚选择正确的称呼${isHell ? ' · ☠️地狱模式' : isHard ? ' · 🔥困难模式' : ''}</p>
       </div>
-      ${isHard ? `
-      <div id="seating-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;"></div>
+      ${isHard || isHell ? `
+      <div id="seating-grid" style="display:grid;grid-template-columns:repeat(${isHell ? 5 : 2},1fr);gap:${isHell ? '6px' : '10px'};margin-bottom:16px;${isHell ? 'max-height:60vh;overflow-y:auto;padding:4px;' : ''}"></div>
       ` : `
       <div class="card" style="padding:24px;">
         <div id="seating-table" style="position:relative;width:280px;height:280px;margin:0 auto;">
@@ -758,17 +768,17 @@
 
     const selections = {};
 
-    if (isHard) {
-      // 困难模式：网格布局
+    if (isHard || isHell) {
+      // 困难/地狱模式：网格布局
       const grid = document.getElementById('seating-grid');
       for (let i = 0; i < relCount; i++) {
         const rel = matcher.assignments.get(i);
         const card = document.createElement('div');
         card.className = 'card';
-        card.style.cssText = 'text-align:center;padding:12px 8px;';
+        card.style.cssText = `text-align:center;padding:${isHell ? '8px 4px' : '12px 8px'};`;
         card.innerHTML = `
-          <div style="margin-bottom:6px;">${avatarHTML(rel, 'avatar-frame-sm')}</div>
-          <select data-seat="${i}" style="width:100%;background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:6px 4px;font-size:12px;font-family:var(--font-body);">
+          <div style="margin-bottom:${isHell ? '4px' : '6px'};">${avatarHTML(rel, 'avatar-frame-sm')}</div>
+          <select data-seat="${i}" style="width:100%;background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:${isHell ? '4px 2px' : '6px 4px'};font-size:${isHell ? '10px' : '12px'};font-family:var(--font-body);">
             <option value="">选称呼</option>
             ${titleOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
           </select>
@@ -820,7 +830,7 @@
       engine.state.seatingResult = { ...result };
       
       // 更新选择框样式
-      const allSelects = isHard 
+      const allSelects = isHard || isHell
         ? document.getElementById('seating-grid').querySelectorAll('select')
         : document.getElementById('seating-table').querySelectorAll('select');
       allSelects.forEach(sel => {
@@ -855,12 +865,12 @@
     screens.dialogue.innerHTML = `
       <div class="card" style="padding:12px 16px;margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-family:var(--font-title);font-size:20px;color:var(--text-red);">🗣️ 酒桌对话${engine.state.difficulty === 'hard' ? ' <span style="font-size:12px;color:var(--gold-dark);background:var(--card-bg-alt);padding:2px 6px;border-radius:4px;border:1px solid var(--gold);vertical-align:middle;">🔥困难</span>' : ''}</span>
+          <span style="font-family:var(--font-title);font-size:20px;color:var(--text-red);">🗣️ 酒桌对话${engine.state.difficulty === 'hell' ? ' <span style="font-size:12px;color:#ff4444;background:#1a1a2e;padding:2px 6px;border-radius:4px;border:1px solid #ff4444;vertical-align:middle;">☠️地狱</span>' : engine.state.difficulty === 'hard' ? ' <span style="font-size:12px;color:var(--gold-dark);background:var(--card-bg-alt);padding:2px 6px;border-radius:4px;border:1px solid var(--gold);vertical-align:middle;">🔥困难</span>' : ''}</span>
           <span id="round-counter" style="color:var(--text-muted);font-size:12px;">第 1/${ds.totalRounds} 轮</span>
         </div>
         <div class="progress-bar"><div class="progress-bar-fill" id="round-progress" style="width:${(100/ds.totalRounds).toFixed(1)}%;"></div></div>
       </div>
-      <div id="dialogue-avatars" style="display:flex;justify-content:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;"></div>
+      <div id="dialogue-avatars" style="display:flex;justify-content:center;gap:${engine.state.relatives.length > 10 ? '4px' : '10px'};margin-bottom:12px;flex-wrap:wrap;${engine.state.relatives.length > 10 ? 'max-height:120px;overflow-y:auto;padding:4px;' : ''}"></div>
       <div style="text-align:center;margin-bottom:10px;">
         <div style="display:inline-flex;align-items:end;gap:4px;">
           <div class="glass-container" id="glass-container" title="点击续酒">
@@ -944,6 +954,7 @@
         </div>
         <div id="options-area" style="display:flex;flex-direction:column;gap:8px;opacity:0;"></div>
         <div id="reaction-area" style="display:none;margin-top:14px;"></div>
+        ${engine.state.relatives.length <= 10 ? `
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border);">
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">酒桌上的亲戚们：</div>
           <div style="display:grid;grid-template-columns:repeat(${engine.state.relatives.length > 5 ? 5 : 3},1fr);gap:8px;">
@@ -956,6 +967,11 @@
             `).join('')}
           </div>
         </div>
+        ` : `
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border);">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">酒桌上坐了 ${engine.state.relatives.length} 位亲戚 · 人太多了放不下...</div>
+        </div>
+        `}
       `;
 
       // 打字机效果显示问题
@@ -1149,8 +1165,14 @@
           <div class="popup-card" style="max-width:460px;">
             <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">🍶 ${toastingRelative.name} 干了，快倒酒！</p>
             <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px;">点击空杯子给亲戚倒酒，<span id="refill-timer" style="color:var(--error);font-weight:700;">3</span>秒内完成</p>
-            <div style="display:grid;grid-template-columns:repeat(${relatives.length > 5 ? 5 : 3},1fr);gap:12px;margin-bottom:16px;" id="relatives-glasses">
-              ${relatives.map((r, i) => `
+            <div style="display:grid;grid-template-columns:repeat(${relatives.length > 10 ? 1 : relatives.length > 5 ? 5 : 3},1fr);gap:12px;margin-bottom:16px;" id="relatives-glasses">
+              ${relatives.length > 10 ? `
+                <div style="text-align:center;padding:8px;background:var(--card-bg-alt);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" data-index="${toastingIndex}" class="relative-glass empty-glass">
+                  ${avatarHTML(toastingRelative, 'avatar-frame-sm')}
+                  <div style="font-size:11px;color:var(--text-muted);margin:4px 0;">${toastingRelative.name}</div>
+                  <div class="glass-icon" data-state="empty" style="font-size:24px;">🥃</div>
+                </div>
+              ` : relatives.map((r, i) => `
                 <div style="text-align:center;padding:8px;background:var(--card-bg-alt);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" data-index="${i}" class="relative-glass ${i === toastingIndex ? 'empty-glass' : ''}">
                   ${avatarHTML(r, 'avatar-frame-sm')}
                   <div style="font-size:11px;color:var(--text-muted);margin:4px 0;">${r.name}</div>
@@ -1377,10 +1399,20 @@
           </button>
           <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">10位亲戚 · 10轮对话 · 更多成就</p>
         </div>
+        ` : engine.state.difficulty === 'hard' ? `
+        <div style="margin-top:16px;text-align:center;">
+          <div style="display:inline-block;padding:8px 16px;background:var(--card-bg-alt);border-radius:8px;border:1px solid var(--gold);margin-bottom:10px;">
+            <span style="font-size:13px;color:var(--gold-dark);font-weight:700;">🔥 困难模式已通关</span>
+          </div>
+          <button class="btn-gold" id="btn-hell-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#ff4444;border:2px solid #ff4444;">
+            ☠️ 挑战地狱模式
+          </button>
+          <p style="color:var(--error);font-size:11px;margin-top:6px;">50位亲戚 · 10轮对话 · 你确定？</p>
+        </div>
         ` : `
         <div style="margin-top:16px;text-align:center;">
-          <div style="display:inline-block;padding:8px 16px;background:var(--card-bg-alt);border-radius:8px;border:1px solid var(--gold);">
-            <span style="font-size:13px;color:var(--gold-dark);font-weight:700;">🔥 困难模式已通关</span>
+          <div style="display:inline-block;padding:8px 16px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:8px;border:1px solid #ff4444;">
+            <span style="font-size:13px;color:#ff4444;font-weight:700;">☠️ 地狱模式已通关</span>
           </div>
         </div>
         `}
@@ -1402,6 +1434,16 @@
       hardBtn.addEventListener('click', () => {
         engine.resetGame();
         engine.startGame('hard');
+        renderIdentityCard();
+        showScreen('identity');
+      });
+    }
+    // 地狱模式按钮
+    const hellBtn = document.getElementById('btn-hell-mode');
+    if (hellBtn) {
+      hellBtn.addEventListener('click', () => {
+        engine.resetGame();
+        engine.startGame('hell');
         renderIdentityCard();
         showScreen('identity');
       });
