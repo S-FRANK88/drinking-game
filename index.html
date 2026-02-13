@@ -93,6 +93,37 @@
     @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
     @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
     @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+    
+    /* ── 红包掉落动画 ── */
+    @keyframes redPacketFall {
+      0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0.8;
+      }
+    }
+    
+    @keyframes redPacketSwing {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      25% { transform: translateX(-15px) rotate(-10deg); }
+      75% { transform: translateX(15px) rotate(10deg); }
+    }
+    
+    .red-packet {
+      position: fixed;
+      font-size: 32px;
+      z-index: 999;
+      pointer-events: none;
+      animation: redPacketFall 3s ease-in forwards;
+      filter: drop-shadow(0 2px 8px rgba(197,48,48,0.4));
+    }
+    
+    .red-packet.swing {
+      animation: redPacketFall 3s ease-in forwards, redPacketSwing 0.8s ease-in-out infinite;
+    }
 
     /* ── 主卡片 ── */
     .card-main {
@@ -165,6 +196,18 @@
       font-size: 22px;
       color: var(--gold);
       z-index: 1;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    .id-card-seal:hover {
+      transform: scale(1.15) rotate(10deg);
+      border-color: var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.5);
+      background: rgba(201,168,76,0.1);
+    }
+    .id-card-seal:active {
+      transform: scale(0.95);
     }
 
     /* ── 普通卡片 ── */
@@ -417,8 +460,148 @@
     <div id="screen-result" class="screen"></div>
   </div>
   <button id="bgm-toggle" style="position:fixed;bottom:16px;right:16px;z-index:200;background:var(--card-bg);border:1.5px solid var(--gold);color:var(--text-red);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;display:none;" aria-label="BGM">🔇</button>
+  
+  <!-- 微信二维码按钮 -->
+  <button id="wechat-qr-btn" style="position:fixed;bottom:64px;right:16px;z-index:200;background:var(--gold-light);border:2px solid var(--gold);color:var(--text-dark);width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:20px;box-shadow:0 3px 12px rgba(201,168,76,0.4);transition:all 0.2s ease;" aria-label="微信二维码" title="联系作者">💬</button>
+  
   <script src="data.js"></script>
   <script src="engine.js"></script>
   <script src="app.js"></script>
+  
+  <script>
+    // 红包掉落特效
+    function createRedPacketRain() {
+      const redPacketEmojis = ['🧧', '💰', '💴', '💵', '💸', '🎁'];
+      const count = 15 + Math.floor(Math.random() * 10); // 15-25个红包
+      
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          const packet = document.createElement('div');
+          packet.className = 'red-packet' + (Math.random() > 0.5 ? ' swing' : '');
+          packet.textContent = redPacketEmojis[Math.floor(Math.random() * redPacketEmojis.length)];
+          
+          // 随机水平位置
+          const leftPos = Math.random() * 90 + 5; // 5% - 95%
+          packet.style.left = leftPos + '%';
+          
+          // 随机动画时长
+          const duration = 2.5 + Math.random() * 1.5; // 2.5-4秒
+          packet.style.animationDuration = duration + 's';
+          
+          document.body.appendChild(packet);
+          
+          // 动画结束后移除元素
+          setTimeout(() => {
+            packet.remove();
+          }, duration * 1000);
+        }, i * 80); // 每个红包间隔80ms
+      }
+    }
+    
+    // 监听福字点击（使用事件委托，因为福字是动态生成的）
+    let fuClickCount = 0;
+    document.addEventListener('click', (e) => {
+      // 检查是否点击了福字或其内部元素
+      let target = e.target;
+      let fuElement = null;
+      
+      // 向上查找最多3层，找到 id-card-seal 元素
+      for (let i = 0; i < 3; i++) {
+        if (target && target.classList && target.classList.contains('id-card-seal')) {
+          fuElement = target;
+          break;
+        }
+        target = target.parentElement;
+      }
+      
+      if (fuElement) {
+        console.log('福字被点击了！'); // 调试信息
+        fuClickCount++;
+        
+        // 福字旋转动画
+        fuElement.style.transition = 'transform 0.3s ease';
+        fuElement.style.transform = 'rotate(360deg) scale(1.2)';
+        
+        setTimeout(() => {
+          fuElement.style.transform = 'rotate(0deg) scale(1)';
+        }, 300);
+        
+        // 触发红包雨
+        createRedPacketRain();
+        
+        // 特殊提示
+        if (fuClickCount === 1) {
+          showToast('🧧 恭喜发财！红包雨来啦！');
+        } else if (fuClickCount === 5) {
+          showToast('💰 财运亨通！你已经点了5次福字！');
+        } else if (fuClickCount === 10) {
+          showToast('💸 财神附体！你是真的爱钱啊！');
+        }
+      }
+    });
+    
+    // 简单的提示函数
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(197, 48, 48, 0.95);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: fadeIn 0.3s ease;
+        pointer-events: none;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+    
+    // 微信二维码弹窗
+    document.getElementById('wechat-qr-btn').addEventListener('click', () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'popup-overlay';
+      overlay.innerHTML = `
+        <div class="popup-card" style="max-width:360px;">
+          <p style="font-family:var(--font-title);font-size:24px;color:var(--text-red);margin-bottom:8px;">👋 联系作者</p>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">扫码添加微信，交流反馈</p>
+          <div style="background:#FFF;padding:16px;border-radius:12px;margin-bottom:16px;border:1px solid var(--card-border);">
+            <img src="wechat-qr.png" alt="微信二维码" style="width:100%;max-width:240px;height:auto;display:block;margin:0 auto;" onerror="this.parentElement.innerHTML='<div style=\\'padding:60px 20px;color:var(--text-muted);font-size:14px;\\'>二维码加载失败<br>请检查文件名是否为<br><strong style=\\'color:var(--text-red);\\'>wechat-qr.png</strong></div>'">
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">
+            物理老师 · 戏剧人 · AI折腾家<br>
+            欢迎交流游戏创意和AI应用
+          </p>
+          <button class="btn-gold" id="btn-close-wechat" style="width:100%;padding:12px;">关闭</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.getElementById('btn-close-wechat').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    });
+    
+    // 按钮悬停效果
+    const wechatBtn = document.getElementById('wechat-qr-btn');
+    wechatBtn.addEventListener('mouseenter', () => {
+      wechatBtn.style.transform = 'scale(1.1)';
+      wechatBtn.style.boxShadow = '0 4px 16px rgba(201,168,76,0.5)';
+    });
+    wechatBtn.addEventListener('mouseleave', () => {
+      wechatBtn.style.transform = 'scale(1)';
+      wechatBtn.style.boxShadow = '0 3px 12px rgba(201,168,76,0.4)';
+    });
+  </script>
 </body>
 </html>

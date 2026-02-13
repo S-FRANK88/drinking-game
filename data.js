@@ -42,7 +42,7 @@ const GAME_DATA = {
     cities: ['北京', '上海', '深圳', '杭州', '广州', '成都', '南京', '苏州'],
     incomeRanges: ['月薪5k-8k', '月薪8k-15k', '月薪15k-30k', '月薪30k+'],
     relationshipStatuses: ['单身', '恋爱中', '已婚'],
-    educations: ['本科', '985本科', '硕士', '985硕士', '海归硕士', '大专']
+    educations: ['跟AI自学', '家里蹲', '小学', '初中', '高中', '大专', '本科', '985本科', '硕士', '985硕士', '海归硕士', '博士', '博士后', '青年教师', '副教授', '教授', '诺贝尔奖得主']
   },
 
   // ── 祝福关键词 ──
@@ -419,6 +419,57 @@ const GAME_DATA = {
         { text: '996是常态', type: 'neutral', faceChange: 0, moodChange: -5, reaction: '这也太辛苦了吧' },
         { text: '我从不加班，到点就走', type: 'rebellious', faceChange: -8, moodChange: 10, reaction: '这样能升职吗？' }
       ]},
+    
+    // === 关心类问题（新增） ===
+    { id: 'q_care_1', text: '在外面一个人，吃饭有没有好好吃？别总吃外卖', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_女'], playerConditions: {},
+      options: [
+        { text: '有好好吃饭，您放心', type: 'compliant', faceChange: 10, moodChange: 5, reaction: '那就好，身体最重要' },
+        { text: '工作忙，经常凑合', type: 'neutral', faceChange: 5, moodChange: 3, reaction: '再忙也要照顾好自己啊' },
+        { text: '外卖挺好的，方便', type: 'rebellious', faceChange: -5, moodChange: 5, reaction: '外卖不健康，学着自己做饭吧' }
+      ]},
+    { id: 'q_care_2', text: '工作压力大不大？累了就回家休息几天', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_男', '长辈_女'], playerConditions: {},
+      options: [
+        { text: '还好，我能应付', type: 'compliant', faceChange: 8, moodChange: 5, reaction: '年轻人要注意劳逸结合' },
+        { text: '确实有点累，但还能坚持', type: 'neutral', faceChange: 5, moodChange: 8, reaction: '别硬撑，身体垮了就晚了' },
+        { text: '压力山大，快撑不住了', type: 'rebellious', faceChange: 0, moodChange: 10, reaction: '那就回来吧，家里永远是你的港湾' }
+      ]},
+    { id: 'q_care_3', text: '晚上睡得好吗？看你眼睛有点红', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_女'], playerConditions: {},
+      options: [
+        { text: '睡得挺好的，谢谢关心', type: 'compliant', faceChange: 8, moodChange: 5, reaction: '那就好，年轻人要保证睡眠' },
+        { text: '经常熬夜加班', type: 'neutral', faceChange: 3, moodChange: 8, reaction: '这可不行，熬夜伤身体' },
+        { text: '失眠，睡不着', type: 'rebellious', faceChange: 0, moodChange: 10, reaction: '是不是压力太大了？要不要看看医生？' }
+      ]},
+    { id: 'q_care_4', text: '一个人在外面，有什么困难就说，别硬撑着', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_男'], playerConditions: {},
+      options: [
+        { text: '好的，谢谢您，我会的', type: 'compliant', faceChange: 10, moodChange: 8, reaction: '咱们是一家人，别客气' },
+        { text: '暂时还好，有困难会说的', type: 'neutral', faceChange: 5, moodChange: 5, reaction: '记住了，家里永远支持你' },
+        { text: '我能自己解决', type: 'rebellious', faceChange: -3, moodChange: 8, reaction: '年轻人有骨气是好事，但别逞强' }
+      ]},
+    { id: 'q_care_5', text: '天冷了，多穿点衣服，别感冒了', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_女'], playerConditions: {},
+      options: [
+        { text: '知道了，我会注意的', type: 'compliant', faceChange: 8, moodChange: 5, reaction: '乖，照顾好自己' },
+        { text: '我身体好，不怕冷', type: 'neutral', faceChange: 3, moodChange: 3, reaction: '年轻是本钱，但也要注意' },
+        { text: '您别操心了', type: 'rebellious', faceChange: -5, moodChange: 5, reaction: '我这不是关心你嘛' }
+      ]},
+    { id: 'q_care_6', text: '在外面有没有交到好朋友？遇到事有人帮忙吗？', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_女', '长辈_男'], playerConditions: {},
+      options: [
+        { text: '有几个关系很好的朋友', type: 'compliant', faceChange: 8, moodChange: 5, reaction: '那就好，朋友多了路好走' },
+        { text: '朋友不多，但够用', type: 'neutral', faceChange: 5, moodChange: 3, reaction: '朋友在精不在多' },
+        { text: '我习惯一个人', type: 'rebellious', faceChange: -3, moodChange: 5, reaction: '年轻人还是要多社交啊' }
+      ]},
+    { id: 'q_care_7', text: '过年回来看你瘦了，是不是工作太累了？', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_女'], playerConditions: {},
+      options: [
+        { text: '最近在健身减肥', type: 'compliant', faceChange: 8, moodChange: 5, reaction: '健身好，但别减太多' },
+        { text: '工作确实挺累的', type: 'neutral', faceChange: 5, moodChange: 8, reaction: '那你得多吃点，补补身体' },
+        { text: '我觉得挺好的啊', type: 'rebellious', faceChange: 0, moodChange: 3, reaction: '年轻人还是要壮实点好' }
+      ]},
+    { id: 'q_care_8', text: '工资够花吗？要是不够跟家里说', tags: ['传统寒暄', '关心'], relativeTypes: ['长辈_男'], playerConditions: {},
+      options: [
+        { text: '够的，谢谢您关心', type: 'compliant', faceChange: 10, moodChange: 5, reaction: '那就好，有困难别硬撑' },
+        { text: '勉强够用', type: 'neutral', faceChange: 5, moodChange: 5, reaction: '年轻人要学会理财' },
+        { text: '月光族，花完就没了', type: 'rebellious', faceChange: -3, moodChange: 8, reaction: '这可不行，得存点钱以备不时之需' }
+      ]},
+    
     { id: 'q_extra_2', text: '你们公司上市了没？有没有股票？', tags: ['职业收入'], relativeTypes: ['长辈_男', '同辈_男'], playerConditions: {},
       options: [
         { text: '有期权，等上市就发了', type: 'compliant', faceChange: 12, moodChange: -5, reaction: '那可得好好干！' },
@@ -484,7 +535,10 @@ const GAME_DATA = {
     { id: 'ach_eperson', name: 'e人狂欢', description: '全程最大胆选项', icon: '🎉', conditionDesc: '全程选择 rebellious', condition: (s, gs) => gs.dialogueState && gs.dialogueState.choicePattern.length > 0 && gs.dialogueState.choicePattern.every(c => c === 'rebellious') },
     { id: 'ach_wine_god', name: '酒神附体', description: '游走在断片边缘', icon: '🍷', conditionDesc: 'Alcohol >= 80 且 Alcohol < 100', condition: (s) => s.alcohol >= 80 && s.alcohol < 100 },
     { id: 'ach_clear', name: '人间清醒', description: '不喝酒也能全场hold住', icon: '🧠', conditionDesc: 'Face >= 500 且 Mood >= 500 且 Alcohol == 0', condition: (s) => s.face >= 500 && s.mood >= 500 && s.alcohol === 0 },
-    { id: 'ach_actor', name: '年度最佳演员', description: '面子很高但心态崩了', icon: '🎬', conditionDesc: 'Face >= 800 且 Mood < 200', condition: (s) => s.face >= 800 && s.mood < 200 }
+    { id: 'ach_actor', name: '年度最佳演员', description: '面子很高但心态崩了', icon: '🎬', conditionDesc: 'Face >= 800 且 Mood < 200', condition: (s) => s.face >= 800 && s.mood < 200 },
+    { id: 'ach_money_lover', name: '小财迷', description: '涨工资5次', icon: '💰', conditionDesc: 'RaiseCount >= 5', condition: (s, gs) => gs.raiseCount >= 5 },
+    { id: 'ach_money_eyes', name: '掉钱眼儿里了', description: '涨工资15次', icon: '🤑', conditionDesc: 'RaiseCount >= 15', condition: (s, gs) => gs.raiseCount >= 15 },
+    { id: 'ach_money_god', name: '财神来敲你家门', description: '涨工资50次', icon: '💸', conditionDesc: 'RaiseCount >= 50', condition: (s, gs) => gs.raiseCount >= 50 }
   ]
 
 };
