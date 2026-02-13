@@ -577,7 +577,7 @@ class GameEngine {
     // 难度配置
     this.state.difficulty = difficulty;
     const relativeCount = difficulty === 'hell' ? 50 : difficulty === 'hard' ? 10 : 5;
-    const totalRounds = difficulty === 'hell' ? 10 : difficulty === 'hard' ? 10 : 5;
+    const totalRounds = 5;
 
     this.state.player = this.identityGen.generatePlayer();
     this.state.relatives = this.identityGen.generateRelatives(relativeCount);

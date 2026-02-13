@@ -872,11 +872,12 @@
       </div>
       <div id="dialogue-avatars" style="display:flex;justify-content:center;gap:${engine.state.relatives.length > 10 ? '4px' : '10px'};margin-bottom:12px;flex-wrap:wrap;${engine.state.relatives.length > 10 ? 'max-height:120px;overflow-y:auto;padding:4px;' : ''}"></div>
       <div style="text-align:center;margin-bottom:10px;">
-        <div style="display:inline-flex;align-items:end;gap:4px;">
+        <div style="display:inline-flex;align-items:end;gap:8px;">
           <div class="glass-container" id="glass-container" title="点击续酒">
             <div class="glass-fill" id="glass-fill" style="height:100%;"></div>
           </div>
           <span id="glass-alert" style="color:var(--warning);font-size:16px;display:none;animation:pulse 1s infinite;">⚠️</span>
+          <button id="btn-self-refill" class="btn-secondary" style="font-size:11px;padding:4px 10px;white-space:nowrap;">🍶 给自己满酒</button>
         </div>
       </div>
       <div id="dialogue-area" class="card-dialogue" style="min-height:200px;">
@@ -909,6 +910,12 @@
       if (dk.isGlassEmpty()) { dk.refillGlass(); dk.cancelEmptyTimer(); updateGlass(); }
     });
 
+    document.getElementById('btn-self-refill').addEventListener('click', () => {
+      dk.refillGlass(); dk.cancelEmptyTimer(); updateGlass();
+    });
+
+    let isDialogueLocked = false; // 防止连续点击跳轮
+
     function startAutoTimer() {
       ds.startAutoTimer(async () => {
         const idx = Math.floor(Math.random() * engine.state.relatives.length);
@@ -935,6 +942,8 @@
 
     async function handleDialogue(relativeIndex) {
       if (ds.isPhaseComplete()) return;
+      if (isDialogueLocked) return;
+      isDialogueLocked = true;
       const area = document.getElementById('dialogue-area');
       area.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px 0;">🤔 亲戚正在想问题...</p>';
       const { relative, question, round } = await ds.triggerDialogue(relativeIndex);
@@ -983,11 +992,16 @@
       const optArea = document.getElementById('options-area');
       optArea.style.opacity = '1';
       optArea.style.transition = 'opacity 0.3s';
+      isDialogueLocked = false; // 选项显示后解锁
       question.options.forEach((opt, oi) => {
         const btn = document.createElement('button');
         btn.className = 'btn-option';
         btn.textContent = opt.text;
-        btn.addEventListener('click', () => handleOptionSelect(question, oi, relative));
+        btn.addEventListener('click', () => {
+          if (isDialogueLocked) return;
+          isDialogueLocked = true;
+          handleOptionSelect(question, oi, relative);
+        });
         optArea.appendChild(btn);
       });
     }
@@ -1017,7 +1031,8 @@
         </div>
       `;
 
-      if (Math.random() < 0.3 && !ds.isPhaseComplete()) setTimeout(() => showToastPopup(), 1500);
+      const toastChance = engine.state.difficulty === 'hell' ? 0.7 : engine.state.difficulty === 'hard' ? 0.5 : 0.3;
+      if (Math.random() < toastChance && !ds.isPhaseComplete()) setTimeout(() => showToastPopup(), 1500);
 
       if (dk.isGlassEmpty()) {
         document.getElementById('glass-alert').style.display = 'inline';
@@ -1031,7 +1046,7 @@
       setTimeout(() => {
         if (ds.isPhaseComplete()) {
           setTimeout(() => { engine.transition('TOAST'); renderToast(); showScreen('toast'); }, 1000);
-        } else { startAutoTimer(); }
+        } else { isDialogueLocked = false; startAutoTimer(); }
       }, 2000);
     }
 
@@ -1397,7 +1412,7 @@
           <button class="btn-gold" id="btn-hard-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;">
             🔥 挑战困难模式
           </button>
-          <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">10位亲戚 · 10轮对话 · 更多成就</p>
+          <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">10位亲戚 · 5轮对话 · 更多成就</p>
         </div>
         ` : engine.state.difficulty === 'hard' ? `
         <div style="margin-top:16px;text-align:center;">
@@ -1407,7 +1422,7 @@
           <button class="btn-gold" id="btn-hell-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#ff4444;border:2px solid #ff4444;">
             ☠️ 挑战地狱模式
           </button>
-          <p style="color:var(--error);font-size:11px;margin-top:6px;">50位亲戚 · 10轮对话 · 你确定？</p>
+          <p style="color:var(--error);font-size:11px;margin-top:6px;">50位亲戚 · 5轮对话 · 你确定？</p>
         </div>
         ` : `
         <div style="margin-top:16px;text-align:center;">
