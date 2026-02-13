@@ -313,7 +313,8 @@ class SeatingMatcher {
 
   assignSeats(relatives) {
     this.relatives = relatives;
-    const indices = [0, 1, 2, 3, 4];
+    const count = relatives.length;
+    const indices = Array.from({ length: count }, (_, i) => i);
     // Fisher-Yates shuffle
     for (let i = indices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -329,8 +330,9 @@ class SeatingMatcher {
 
   evaluateAll() {
     let correct = 0, wrong = 0;
+    const count = this.relatives.length;
     const results = new Map();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < count; i++) {
       const rel = this.assignments.get(i);
       const selected = this.matches.get(i);
       const isCorrect = rel && selected === rel.title;
@@ -343,12 +345,12 @@ class SeatingMatcher {
 
 // ── DialogueSystem ──
 class DialogueSystem {
-  constructor(relatives, aiProvider, playerIdentity) {
+  constructor(relatives, aiProvider, playerIdentity, totalRounds = 5) {
     this.relatives = relatives;
     this.aiProvider = aiProvider;
     this.playerIdentity = playerIdentity;
     this.currentRound = 0;
-    this.totalRounds = 5;
+    this.totalRounds = totalRounds;
     this.history = [];
     this.choicePattern = [];
     this.autoTimer = null;
@@ -519,7 +521,8 @@ class GameEngine {
       drinkingState: { glassLevel: 100, toastCount: 0 },
       toastText: '',
       toastAudioBlob: null,
-      achievements: []
+      achievements: [],
+      difficulty: 'normal'
     };
   }
 
@@ -566,19 +569,24 @@ class GameEngine {
     if (ae) ae.textContent = this.state.scores.alcohol;
   }
 
-  startGame() {
+  startGame(difficulty = 'normal') {
     const data = this.dataLoader.loadAll();
     this.identityGen = new IdentityGenerator(data.relatives, GAME_DATA.playerPool);
     this.resultGenerator = new ResultGenerator(data.achievements);
 
+    // 难度配置
+    this.state.difficulty = difficulty;
+    const relativeCount = difficulty === 'hard' ? 10 : 5;
+    const totalRounds = difficulty === 'hard' ? 10 : 5;
+
     this.state.player = this.identityGen.generatePlayer();
-    this.state.relatives = this.identityGen.generateRelatives(5);
+    this.state.relatives = this.identityGen.generateRelatives(relativeCount);
     this.state.scores = { face: 50, mood: 50, alcohol: 0 };
 
     if (this.aiProvider instanceof StaticAIProvider) this.aiProvider.reset();
 
     this.seatingMatcher = new SeatingMatcher();
-    this.dialogueSystem = new DialogueSystem(this.state.relatives, this.aiProvider, this.state.player);
+    this.dialogueSystem = new DialogueSystem(this.state.relatives, this.aiProvider, this.state.player, totalRounds);
     this.drinkingSystem = new DrinkingSystem(this);
 
     this.updateUI();

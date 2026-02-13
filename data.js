@@ -538,7 +538,15 @@ const GAME_DATA = {
     { id: 'ach_actor', name: '年度最佳演员', description: '面子很高但心态崩了', icon: '🎬', conditionDesc: 'Face >= 800 且 Mood < 200', condition: (s) => s.face >= 800 && s.mood < 200 },
     { id: 'ach_money_lover', name: '小财迷', description: '涨工资5次', icon: '💰', conditionDesc: 'RaiseCount >= 5', condition: (s, gs) => gs.raiseCount >= 5 },
     { id: 'ach_money_eyes', name: '掉钱眼儿里了', description: '涨工资15次', icon: '🤑', conditionDesc: 'RaiseCount >= 15', condition: (s, gs) => gs.raiseCount >= 15 },
-    { id: 'ach_money_god', name: '财神来敲你家门', description: '涨工资50次', icon: '💸', conditionDesc: 'RaiseCount >= 50', condition: (s, gs) => gs.raiseCount >= 50 }
+    { id: 'ach_money_god', name: '财神来敲你家门', description: '涨工资30次', icon: '💸', conditionDesc: 'RaiseCount >= 30', condition: (s, gs) => gs.raiseCount >= 30 },
+    // ── 困难模式成就 ──
+    { id: 'ach_hard_survivor', name: '酒桌幸存者', description: '困难模式通关', icon: '🏆', conditionDesc: '困难模式完成', condition: (s, gs) => gs.difficulty === 'hard' },
+    { id: 'ach_hard_memory', name: '最强大脑', description: '困难模式全部认对亲戚', icon: '🧠', conditionDesc: '困难模式全部匹配正确', condition: (s, gs) => gs.difficulty === 'hard' && gs.seatingResult && gs.seatingResult.correctCount === 10 },
+    { id: 'ach_hard_face', name: '面子王中王', description: '困难模式面子超500', icon: '👑', conditionDesc: '困难模式 Face >= 500', condition: (s, gs) => gs.difficulty === 'hard' && s.face >= 500 },
+    { id: 'ach_hard_zen', name: '泰山崩于前', description: '困难模式心态不崩', icon: '🧘', conditionDesc: '困难模式 Mood >= 60', condition: (s, gs) => gs.difficulty === 'hard' && s.mood >= 60 },
+    { id: 'ach_hard_sober', name: '千杯不醉', description: '困难模式酒精低于50', icon: '🍵', conditionDesc: '困难模式 Alcohol < 50', condition: (s, gs) => gs.difficulty === 'hard' && s.alcohol < 50 },
+    { id: 'ach_hard_perfect', name: '满分答卷', description: '困难模式面子心态双高', icon: '💯', conditionDesc: '困难模式 Face>=400 Mood>=400', condition: (s, gs) => gs.difficulty === 'hard' && s.face >= 400 && s.mood >= 400 },
+    { id: 'ach_hard_rebel', name: '叛逆到底', description: '困难模式全选叛逆', icon: '🔥', conditionDesc: '困难模式全程rebellious', condition: (s, gs) => gs.difficulty === 'hard' && gs.dialogueState && gs.dialogueState.choicePattern.length >= 10 && gs.dialogueState.choicePattern.every(c => c === 'rebellious') }
   ]
 
 };

@@ -1,0 +1,32 @@
+<!-- 如果你暂时没有二维码图片，可以用这个版本替换弹窗内容 -->
+<!-- 复制下面的代码，替换 index.html 中的二维码弹窗部分 -->
+
+<div class="popup-card" style="max-width:360px;">
+  <p style="font-family:var(--font-title);font-size:24px;color:var(--text-red);margin-bottom:8px;">👋 联系作者</p>
+  <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">添加微信，交流反馈</p>
+  
+  <!-- 显示微信号 -->
+  <div style="background:#FFF;padding:24px;border-radius:12px;margin-bottom:16px;border:1px solid var(--card-border);">
+    <div style="font-size:48px;margin-bottom:12px;">💬</div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">微信号</p>
+    <p style="font-size:20px;font-weight:700;color:var(--text-red);font-family:monospace;letter-spacing:1px;">
+      your_wechat_id
+    </p>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:12px;">
+      添加时请备注：酒桌模拟器
+    </p>
+  </div>
+  
+  <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">
+    物理老师 · 戏剧人 · AI折腾家<br>
+    欢迎交流游戏创意和AI应用
+  </p>
+  <button class="btn-gold" id="btn-close-wechat" style="width:100%;padding:12px;">关闭</button>
+</div>
+
+<!-- 使用说明：
+1. 将上面的 "your_wechat_id" 替换成你的真实微信号
+2. 复制整段代码
+3. 在 index.html 中找到 overlay.innerHTML = ` 后面的内容
+4. 替换成这段代码
+-->

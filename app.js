@@ -35,7 +35,7 @@
   // ── 红包雨特效 ──
   function createRedPacketRain() {
     const redPacketEmojis = ['🧧', '💰', '💴', '💵', '💸', '🎁'];
-    const count = 15 + Math.floor(Math.random() * 10); // 15-25个红包
+    const count = 15 + Math.floor(Math.random() * 10);
     
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
@@ -43,21 +43,16 @@
         packet.className = 'red-packet' + (Math.random() > 0.5 ? ' swing' : '');
         packet.textContent = redPacketEmojis[Math.floor(Math.random() * redPacketEmojis.length)];
         
-        // 随机水平位置
-        const leftPos = Math.random() * 90 + 5; // 5% - 95%
-        packet.style.left = leftPos + '%';
+        packet.style.left = (Math.random() * 90 + 5) + '%';
+        packet.style.top = '-50px';
         
-        // 随机动画时长
-        const duration = 2.5 + Math.random() * 1.5; // 2.5-4秒
+        const duration = 2.5 + Math.random() * 1.5;
         packet.style.animationDuration = duration + 's';
         
         document.body.appendChild(packet);
         
-        // 动画结束后移除元素
-        setTimeout(() => {
-          packet.remove();
-        }, duration * 1000);
-      }, i * 80); // 每个红包间隔80ms
+        setTimeout(() => { packet.remove(); }, duration * 1000);
+      }, i * 80);
     }
   }
 
@@ -130,7 +125,7 @@
         <div style="font-size:80px;margin-bottom:12px;animation:pulse 1s infinite;">💸</div>
         <p style="font-family:var(--font-title);font-size:28px;color:var(--gold);margin-bottom:8px;">财神来敲你家门！</p>
         <p style="color:var(--text-body);font-size:15px;line-height:1.8;margin-bottom:16px;">
-          ${p.name}，你已经涨工资50次了！<br>
+          ${p.name}，你已经涨工资30次了！<br>
           你的月薪已经达到了 <span style="color:var(--gold);font-weight:700;font-size:18px;">${p.incomeRange}</span><br>
           <br>
           恭喜你，财富自由了！<br>
@@ -353,8 +348,8 @@
         showAchievementPopup('💰', '小财迷', '涨工资5次！你对钱很有想法啊~');
       } else if (count === 15) {
         showAchievementPopup('🤑', '掉钱眼儿里了', '涨工资15次！你眼里只有钱了吧？');
-      } else if (count >= 50) {
-        // 50次直接结束游戏
+      } else if (count >= 30) {
+        // 30次直接结束游戏
         showMoneyGodEnding();
       }
     });
@@ -708,31 +703,28 @@
     const matcher = engine.seatingMatcher;
     matcher.assignSeats(engine.state.relatives);
     const titleOptions = engine.state.relatives.map(r => r.title);
+    const relCount = engine.state.relatives.length;
+    const isHard = engine.state.difficulty === 'hard';
 
     screens.seating.innerHTML = `
       <div class="card-main" style="margin-bottom:16px;padding:20px;">
         <h2 style="font-family:var(--font-title);font-size:26px;color:var(--text-red);text-align:center;margin-bottom:4px;">🪑 认亲戚</h2>
-        <p style="text-align:center;color:var(--text-muted);font-size:12px;">为每个座位上的亲戚选择正确的称呼</p>
+        <p style="text-align:center;color:var(--text-muted);font-size:12px;">为每个座位上的亲戚选择正确的称呼${isHard ? ' · 🔥困难模式' : ''}</p>
       </div>
+      ${isHard ? `
+      <div id="seating-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;"></div>
+      ` : `
       <div class="card" style="padding:24px;">
         <div id="seating-table" style="position:relative;width:280px;height:280px;margin:0 auto;">
           <div class="round-table" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">🍽️</div>
         </div>
       </div>
+      `}
       <button class="btn-red" id="btn-check-seats" style="margin-top:16px;align-self:center;display:none;width:100%;padding:14px;font-size:16px;">确认匹配</button>
       <button class="btn-secondary" id="btn-review" style="margin-top:10px;align-self:center;width:100%;padding:10px;font-size:13px;">📖 复习一下 <span style="color:var(--error);font-size:11px;">面子-5</span></button>
       <div id="seating-result" style="margin-top:12px;text-align:center;display:none;"></div>
       <button class="btn-red" id="btn-start-dialogue" style="margin-top:12px;align-self:center;display:none;width:100%;padding:14px;font-size:17px;">开始酒桌对话 →</button>
     `;
-
-    const table = document.getElementById('seating-table');
-    const seatPositions = [
-      { top: '2%', left: '50%' },
-      { top: '28%', left: '92%' },
-      { top: '72%', left: '85%' },
-      { top: '72%', left: '15%' },
-      { top: '28%', left: '8%' }
-    ];
 
     // 复习按钮
     document.getElementById('btn-review').addEventListener('click', () => {
@@ -741,7 +733,7 @@
       const overlay = document.createElement('div');
       overlay.className = 'popup-overlay';
       overlay.innerHTML = `
-        <div class="popup-card" style="max-width:360px;text-align:left;">
+        <div class="popup-card" style="max-width:400px;text-align:left;max-height:80vh;overflow-y:auto;">
           <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);text-align:center;margin-bottom:4px;">😅 妈，他们都是谁来着，我给忘了</p>
           <p style="text-align:center;color:var(--text-muted);font-size:12px;margin-bottom:16px;">面子 -5</p>
           <div style="display:flex;flex-direction:column;gap:8px;">
@@ -765,36 +757,79 @@
     });
 
     const selections = {};
-    seatPositions.forEach((pos, i) => {
-      const rel = matcher.assignments.get(i);
-      const seat = document.createElement('div');
-      seat.style.cssText = `position:absolute;top:${pos.top};left:${pos.left};transform:translate(-50%,-50%);text-align:center;`;
-      seat.innerHTML = `
-        <div style="margin-bottom:4px;">${avatarHTML(rel, 'avatar-frame-sm')}</div>
-        <select data-seat="${i}" style="background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:4px 2px;font-size:11px;max-width:72px;font-family:var(--font-body);">
-          <option value="">选称呼</option>
-          ${titleOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
-        </select>
-      `;
-      table.appendChild(seat);
-      seat.querySelector('select').addEventListener('change', (e) => {
-        selections[i] = e.target.value;
-        if (Object.keys(selections).length === 5 && Object.values(selections).every(v => v)) {
-          document.getElementById('btn-check-seats').style.display = 'block';
-        }
+
+    if (isHard) {
+      // 困难模式：网格布局
+      const grid = document.getElementById('seating-grid');
+      for (let i = 0; i < relCount; i++) {
+        const rel = matcher.assignments.get(i);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.cssText = 'text-align:center;padding:12px 8px;';
+        card.innerHTML = `
+          <div style="margin-bottom:6px;">${avatarHTML(rel, 'avatar-frame-sm')}</div>
+          <select data-seat="${i}" style="width:100%;background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:6px 4px;font-size:12px;font-family:var(--font-body);">
+            <option value="">选称呼</option>
+            ${titleOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
+          </select>
+        `;
+        grid.appendChild(card);
+        card.querySelector('select').addEventListener('change', (e) => {
+          selections[i] = e.target.value;
+          const filled = Object.keys(selections).length;
+          if (filled === relCount && Object.values(selections).every(v => v)) {
+            document.getElementById('btn-check-seats').style.display = 'block';
+          }
+        });
+      }
+    } else {
+      // 普通模式：圆桌布局
+      const table = document.getElementById('seating-table');
+      const seatPositions = [
+        { top: '2%', left: '50%' },
+        { top: '28%', left: '92%' },
+        { top: '72%', left: '85%' },
+        { top: '72%', left: '15%' },
+        { top: '28%', left: '8%' }
+      ];
+
+      seatPositions.forEach((pos, i) => {
+        const rel = matcher.assignments.get(i);
+        const seat = document.createElement('div');
+        seat.style.cssText = `position:absolute;top:${pos.top};left:${pos.left};transform:translate(-50%,-50%);text-align:center;`;
+        seat.innerHTML = `
+          <div style="margin-bottom:4px;">${avatarHTML(rel, 'avatar-frame-sm')}</div>
+          <select data-seat="${i}" style="background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:4px 2px;font-size:11px;max-width:72px;font-family:var(--font-body);">
+            <option value="">选称呼</option>
+            ${titleOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
+          </select>
+        `;
+        table.appendChild(seat);
+        seat.querySelector('select').addEventListener('change', (e) => {
+          selections[i] = e.target.value;
+          if (Object.keys(selections).length === relCount && Object.values(selections).every(v => v)) {
+            document.getElementById('btn-check-seats').style.display = 'block';
+          }
+        });
       });
-    });
+    }
 
     document.getElementById('btn-check-seats').addEventListener('click', () => {
       Object.entries(selections).forEach(([si, title]) => matcher.submitMatch(parseInt(si), title));
       const result = matcher.evaluateAll();
       engine.state.seatingResult = { ...result };
-      table.querySelectorAll('select').forEach(sel => {
+      
+      // 更新选择框样式
+      const allSelects = isHard 
+        ? document.getElementById('seating-grid').querySelectorAll('select')
+        : document.getElementById('seating-table').querySelectorAll('select');
+      allSelects.forEach(sel => {
         const si = parseInt(sel.dataset.seat);
         sel.disabled = true;
         sel.style.borderColor = result.results.get(si) ? 'var(--green)' : 'var(--error)';
         sel.style.borderWidth = '2px';
       });
+      
       const scoreDelta = result.correct * GAME_DATA.scoringRules.seatCorrect + result.wrong * GAME_DATA.scoringRules.seatWrong;
       engine.adjustFace(scoreDelta);
       const resDiv = document.getElementById('seating-result');
@@ -820,10 +855,10 @@
     screens.dialogue.innerHTML = `
       <div class="card" style="padding:12px 16px;margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-family:var(--font-title);font-size:20px;color:var(--text-red);">🗣️ 酒桌对话</span>
-          <span id="round-counter" style="color:var(--text-muted);font-size:12px;">第 1/5 轮</span>
+          <span style="font-family:var(--font-title);font-size:20px;color:var(--text-red);">🗣️ 酒桌对话${engine.state.difficulty === 'hard' ? ' <span style="font-size:12px;color:var(--gold-dark);background:var(--card-bg-alt);padding:2px 6px;border-radius:4px;border:1px solid var(--gold);vertical-align:middle;">🔥困难</span>' : ''}</span>
+          <span id="round-counter" style="color:var(--text-muted);font-size:12px;">第 1/${ds.totalRounds} 轮</span>
         </div>
-        <div class="progress-bar"><div class="progress-bar-fill" id="round-progress" style="width:20%;"></div></div>
+        <div class="progress-bar"><div class="progress-bar-fill" id="round-progress" style="width:${(100/ds.totalRounds).toFixed(1)}%;"></div></div>
       </div>
       <div id="dialogue-avatars" style="display:flex;justify-content:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;"></div>
       <div style="text-align:center;margin-bottom:10px;">
@@ -893,8 +928,8 @@
       const area = document.getElementById('dialogue-area');
       area.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px 0;">🤔 亲戚正在想问题...</p>';
       const { relative, question, round } = await ds.triggerDialogue(relativeIndex);
-      document.getElementById('round-counter').textContent = `第 ${round}/5 轮`;
-      document.getElementById('round-progress').style.width = `${round * 20}%`;
+      document.getElementById('round-counter').textContent = `第 ${round}/${ds.totalRounds} 轮`;
+      document.getElementById('round-progress').style.width = `${round * (100/ds.totalRounds)}%`;
 
       area.innerHTML = `
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -911,7 +946,7 @@
         <div id="reaction-area" style="display:none;margin-top:14px;"></div>
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border);">
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">酒桌上的亲戚们：</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div style="display:grid;grid-template-columns:repeat(${engine.state.relatives.length > 5 ? 5 : 3},1fr);gap:8px;">
             ${engine.state.relatives.map((r, i) => `
               <div style="text-align:center;padding:6px;background:var(--card-bg-alt);border-radius:var(--r-sm);">
                 ${avatarHTML(r, 'avatar-frame-sm')}
@@ -1114,7 +1149,7 @@
           <div class="popup-card" style="max-width:460px;">
             <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">🍶 ${toastingRelative.name} 干了，快倒酒！</p>
             <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px;">点击空杯子给亲戚倒酒，<span id="refill-timer" style="color:var(--error);font-weight:700;">3</span>秒内完成</p>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;" id="relatives-glasses">
+            <div style="display:grid;grid-template-columns:repeat(${relatives.length > 5 ? 5 : 3},1fr);gap:12px;margin-bottom:16px;" id="relatives-glasses">
               ${relatives.map((r, i) => `
                 <div style="text-align:center;padding:8px;background:var(--card-bg-alt);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" data-index="${i}" class="relative-glass ${i === toastingIndex ? 'empty-glass' : ''}">
                   ${avatarHTML(r, 'avatar-frame-sm')}
@@ -1335,6 +1370,20 @@
           ${engine.state.toastAudioBlob ? '<button class="btn-secondary" id="btn-download-audio">🎤 下载录音</button>' : ''}
           <button class="btn-red" id="btn-replay" style="padding:12px 36px;font-size:16px;">🔄 再来一局</button>
         </div>
+        ${engine.state.difficulty === 'normal' ? `
+        <div style="margin-top:16px;text-align:center;">
+          <button class="btn-gold" id="btn-hard-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;">
+            🔥 挑战困难模式
+          </button>
+          <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">10位亲戚 · 10轮对话 · 更多成就</p>
+        </div>
+        ` : `
+        <div style="margin-top:16px;text-align:center;">
+          <div style="display:inline-block;padding:8px 16px;background:var(--card-bg-alt);border-radius:8px;border:1px solid var(--gold);">
+            <span style="font-size:13px;color:var(--gold-dark);font-weight:700;">🔥 困难模式已通关</span>
+          </div>
+        </div>
+        `}
       </div>
     `;
 
@@ -1346,6 +1395,17 @@
     const audioBtn = document.getElementById('btn-download-audio');
     if (audioBtn) audioBtn.addEventListener('click', () => engine.resultGenerator.downloadAudio(engine.state.toastAudioBlob));
     document.getElementById('btn-replay').addEventListener('click', () => { engine.resetGame(); renderCover(); showScreen('cover'); });
+    
+    // 困难模式按钮
+    const hardBtn = document.getElementById('btn-hard-mode');
+    if (hardBtn) {
+      hardBtn.addEventListener('click', () => {
+        engine.resetGame();
+        engine.startGame('hard');
+        renderIdentityCard();
+        showScreen('identity');
+      });
+    }
   }
 
   // ── BGM ──
