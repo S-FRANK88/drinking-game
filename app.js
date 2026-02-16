@@ -2162,23 +2162,23 @@
   const bgmAudio = document.getElementById('bgm-audio');
   bgmAudio.volume = 0.3;
   let bgmPlaying = true;
+  let bgmStarted = false;
   
-  // 浏览器要求用户交互后才能播放音频，监听首次点击
-  function tryPlayBGM() {
-    if (bgmPlaying) {
-      bgmAudio.play().catch(() => {});
+  function ensureBGMPlaying() {
+    if (bgmPlaying && !bgmStarted) {
+      bgmAudio.play().then(() => { bgmStarted = true; }).catch(() => {});
     }
-    document.removeEventListener('click', tryPlayBGM);
-    document.removeEventListener('touchstart', tryPlayBGM);
   }
-  document.addEventListener('click', tryPlayBGM);
-  document.addEventListener('touchstart', tryPlayBGM);
+  
+  // 多种方式尝试启动BGM
+  document.addEventListener('click', ensureBGMPlaying);
+  document.addEventListener('touchstart', ensureBGMPlaying);
   
   bgmToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     bgmPlaying = !bgmPlaying;
     if (bgmPlaying) {
-      bgmAudio.play().catch(() => {});
+      bgmAudio.play().then(() => { bgmStarted = true; }).catch(() => {});
       bgmToggle.textContent = '🔊';
     } else {
       bgmAudio.pause();
