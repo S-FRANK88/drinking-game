@@ -173,14 +173,31 @@
           <h1 style="font-family:var(--font-title);font-size:48px;color:var(--text-red);letter-spacing:10px;margin:8px 0;">${c.title}</h1>
           <div class="divider-gold divider"><span style="font-size:13px;letter-spacing:4px;color:var(--gold-dark);">${c.subtitle}</span></div>
           <p style="color:var(--text-muted);font-size:14px;line-height:1.9;margin:16px 0 28px;">${c.description}</p>
-          <button class="btn-red" id="btn-start" style="width:100%;padding:16px;font-size:20px;">${c.startButton}</button>
+          <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+            <button class="btn-red" id="btn-start-normal" style="width:100%;padding:16px;font-size:20px;">🏮 入 座</button>
+            <button class="btn-red" id="btn-start-hard" style="width:100%;padding:14px;font-size:17px;background:linear-gradient(to right,#B45309,#D97706);">🔥 年夜大桌</button>
+            <button class="btn-red" id="btn-start-hell" style="width:100%;padding:14px;font-size:17px;background:linear-gradient(to right,#7F1D1D,#991B1B);">🧨 超级大家族</button>
+          </div>
+          <div style="display:flex;justify-content:center;gap:16px;margin-top:8px;font-size:11px;color:var(--text-muted);">
+            <span>🏮 5位亲戚</span><span>🔥 10位亲戚</span><span>🧨 50位亲戚</span>
+          </div>
           <button class="btn-gold" id="btn-share" style="width:100%;margin-top:10px;padding:12px;">📤 喊别人回家</button>
           <div style="margin-top:24px;font-size:11px;color:var(--text-muted);letter-spacing:2px;">© 东亚家庭压力研究中心</div>
         </div>
       </div>
     `;
-    document.getElementById('btn-start').addEventListener('click', () => {
-      engine.startGame();
+    document.getElementById('btn-start-normal').addEventListener('click', () => {
+      engine.startGame('normal');
+      renderIdentityCard();
+      showScreen('identity');
+    });
+    document.getElementById('btn-start-hard').addEventListener('click', () => {
+      engine.startGame('hard');
+      renderIdentityCard();
+      showScreen('identity');
+    });
+    document.getElementById('btn-start-hell').addEventListener('click', () => {
+      engine.startGame('hell');
       renderIdentityCard();
       showScreen('identity');
     });
@@ -726,7 +743,9 @@
       ` : `
       <div class="card" style="padding:24px;">
         <div id="seating-table" style="position:relative;width:280px;height:280px;margin:0 auto;">
-          <div class="round-table" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">🍽️</div>
+          <div class="seating-container ${isHard ? 'speed-hard' : isHell ? 'speed-hell' : ''}" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+            <div class="round-table">🍗🍖🥘🍲🥟🍜🥢🍶🍺🍷🥂🍾</div>
+          </div>
         </div>
       </div>
       `}
@@ -806,10 +825,11 @@
       seatPositions.forEach((pos, i) => {
         const rel = matcher.assignments.get(i);
         const seat = document.createElement('div');
+        seat.className = 'seating-container ' + (isHard ? 'speed-hard' : isHell ? 'speed-hell' : '');
         seat.style.cssText = `position:absolute;top:${pos.top};left:${pos.left};transform:translate(-50%,-50%);text-align:center;`;
         seat.innerHTML = `
-          <div style="margin-bottom:4px;">${avatarHTML(rel, 'avatar-frame-sm')}</div>
-          <select data-seat="${i}" style="background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:4px 2px;font-size:11px;max-width:72px;font-family:var(--font-body);">
+          <div style="animation: rotateTable ${isHell ? '15s' : isHard ? '30s' : '60s'} linear infinite reverse;margin-bottom:4px;">${avatarHTML(rel, 'avatar-frame-sm')}</div>
+          <select data-seat="${i}" style="background:#FFF;color:var(--text-body);border:1px solid var(--card-border);border-radius:6px;padding:4px 2px;font-size:11px;max-width:72px;font-family:var(--font-body);animation: rotateTable ${isHell ? '15s' : isHard ? '30s' : '60s'} linear infinite reverse;">
             <option value="">选称呼</option>
             ${titleOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
           </select>
