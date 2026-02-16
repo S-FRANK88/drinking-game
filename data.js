@@ -591,9 +591,10 @@ const GAME_DATA = {
     { id: 'ach_wine_god', name: '酒神附体', description: '游走在断片边缘', icon: '🍷', conditionDesc: 'Alcohol >= 80 且 Alcohol < 100', condition: (s) => s.alcohol >= 80 && s.alcohol < 100 },
     { id: 'ach_clear', name: '人间清醒', description: '不喝酒也能全场hold住', icon: '🧠', conditionDesc: 'Face >= 500 且 Mood >= 500 且 Alcohol == 0', condition: (s) => s.face >= 500 && s.mood >= 500 && s.alcohol === 0 },
     { id: 'ach_actor', name: '年度最佳演员', description: '面子很高但心态崩了', icon: '🎬', conditionDesc: 'Face >= 800 且 Mood < 200', condition: (s) => s.face >= 800 && s.mood < 200 },
-    { id: 'ach_money_lover', name: '小财迷', description: '涨工资5次', icon: '💰', conditionDesc: 'RaiseCount >= 5', condition: (s, gs) => gs.raiseCount >= 5 },
-    { id: 'ach_money_eyes', name: '掉钱眼儿里了', description: '涨工资15次', icon: '🤑', conditionDesc: 'RaiseCount >= 15', condition: (s, gs) => gs.raiseCount >= 15 },
-    { id: 'ach_money_god', name: '财神来敲你家门', description: '涨工资30次', icon: '💸', conditionDesc: 'RaiseCount >= 30', condition: (s, gs) => gs.raiseCount >= 30 },
+    { id: 'ach_money_lover', name: '小财迷', description: '涨工资1次', icon: '💰', conditionDesc: 'RaiseCount >= 1', condition: (s, gs) => gs.raiseCount >= 1 },
+    { id: 'ach_money_eyes', name: '掉钱眼儿里了', description: '涨工资5次', icon: '🤑', conditionDesc: 'RaiseCount >= 5', condition: (s, gs) => gs.raiseCount >= 5 },
+    { id: 'ach_resign_gift', name: '离职大礼包', description: '涨工资10次', icon: '📦', conditionDesc: 'RaiseCount >= 10', condition: (s, gs) => gs.raiseCount >= 10 },
+    { id: 'ach_money_god', name: '财神来敲你家门', description: '涨工资15次', icon: '💸', conditionDesc: 'RaiseCount >= 15', condition: (s, gs) => gs.raiseCount >= 15 },
     // ── 困难模式成就 ──
     { id: 'ach_hard_survivor', name: '酒桌幸存者', description: '困难模式通关', icon: '🏆', conditionDesc: '困难模式完成', condition: (s, gs) => gs.difficulty === 'hard' },
     { id: 'ach_hard_memory', name: '最强大脑', description: '困难模式全部认对亲戚', icon: '🧠', conditionDesc: '困难模式全部匹配正确', condition: (s, gs) => gs.difficulty === 'hard' && gs.seatingResult && gs.seatingResult.correctCount === 10 },
@@ -609,7 +610,11 @@ const GAME_DATA = {
     { id: 'ach_hell_face', name: '面子之神', description: '地狱模式面子超300', icon: '👸', conditionDesc: '地狱模式 Face >= 300', condition: (s, gs) => gs.difficulty === 'hell' && s.face >= 300 },
     { id: 'ach_hell_zen', name: '佛祖转世', description: '地狱模式心态不崩', icon: '☯️', conditionDesc: '地狱模式 Mood >= 50', condition: (s, gs) => gs.difficulty === 'hell' && s.mood >= 50 },
     { id: 'ach_hell_sober', name: '酒仙下凡', description: '地狱模式酒精低于30', icon: '🏺', conditionDesc: '地狱模式 Alcohol < 30', condition: (s, gs) => gs.difficulty === 'hell' && s.alcohol < 30 },
-    { id: 'ach_hell_perfect', name: '人间不值得', description: '地狱模式面子心态双高', icon: '🌟', conditionDesc: '地狱模式 Face>=250 Mood>=250', condition: (s, gs) => gs.difficulty === 'hell' && s.face >= 250 && s.mood >= 250 }
+    { id: 'ach_hell_perfect', name: '人间不值得', description: '地狱模式面子心态双高', icon: '🌟', conditionDesc: '地狱模式 Face>=250 Mood>=250', condition: (s, gs) => gs.difficulty === 'hell' && s.face >= 250 && s.mood >= 250 },
+    // ── 崩溃结局成就 ──
+    { id: 'ach_face_collapse', name: '社死现场', description: '面子丢光被迫离席', icon: '🫣', conditionDesc: '面子崩溃结局', condition: (s, gs) => gs.endReason === 'face_collapse' },
+    { id: 'ach_mood_collapse', name: '掀桌而去', description: '心态爆炸摔门走人', icon: '💥', conditionDesc: '心态崩溃结局', condition: (s, gs) => gs.endReason === 'mood_collapse' },
+    { id: 'ach_rescue_master', name: '绝地反击', description: '面子或心态低于10后成功通关', icon: '🦸', conditionDesc: '触发提一杯后通关', condition: (s, gs) => gs.rescueUsed && !gs.endReason }
   ]
 
 };

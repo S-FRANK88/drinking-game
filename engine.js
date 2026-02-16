@@ -522,7 +522,10 @@ class GameEngine {
       toastText: '',
       toastAudioBlob: null,
       achievements: [],
-      difficulty: 'normal'
+      difficulty: 'normal',
+      endReason: null,
+      rescueUsed: false,
+      raiseCount: 0
     };
   }
 
@@ -560,6 +563,14 @@ class GameEngine {
     return false;
   }
 
+  checkFaceCollapse() {
+    return this.state.scores.face <= 0;
+  }
+
+  checkMoodCollapse() {
+    return this.state.scores.mood <= 0;
+  }
+
   updateUI() {
     const fe = document.getElementById('face-score');
     const me = document.getElementById('mood-score');
@@ -577,7 +588,7 @@ class GameEngine {
     // 难度配置
     this.state.difficulty = difficulty;
     const relativeCount = difficulty === 'hell' ? 50 : difficulty === 'hard' ? 10 : 5;
-    const totalRounds = 5;
+    const totalRounds = difficulty === 'hell' ? 100 : difficulty === 'hard' ? 15 : 5;
 
     this.state.player = this.identityGen.generatePlayer();
     this.state.relatives = this.identityGen.generateRelatives(relativeCount);
@@ -597,14 +608,11 @@ class GameEngine {
     if (this.dialogueSystem) this.dialogueSystem.clearAutoTimer();
     if (this.drinkingSystem) this.drinkingSystem.cancelEmptyTimer();
 
+    this.state.endReason = reason === 'normal' ? null : reason;
     this.state.dialogueState.choicePattern = this.dialogueSystem ? this.dialogueSystem.choicePattern : [];
     this.state.achievements = this.resultGenerator.calculateAchievements(this.state.scores, this.state);
 
-    if (reason === 'drunk') {
-      this.transition('RESULT');
-    } else {
-      this.transition('RESULT');
-    }
+    this.transition('RESULT');
   }
 
   resetGame() {

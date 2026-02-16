@@ -125,7 +125,7 @@
         <div style="font-size:80px;margin-bottom:12px;animation:pulse 1s infinite;">💸</div>
         <p style="font-family:var(--font-title);font-size:28px;color:var(--gold);margin-bottom:8px;">财神来敲你家门！</p>
         <p style="color:var(--text-body);font-size:15px;line-height:1.8;margin-bottom:16px;">
-          ${p.name}，你已经涨工资30次了！<br>
+          ${p.name}，你已经涨工资15次了！<br>
           你的月薪已经达到了 <span style="color:var(--gold);font-weight:700;font-size:18px;">${p.incomeRange}</span><br>
           <br>
           恭喜你，财富自由了！<br>
@@ -360,13 +360,15 @@
       }
       document.getElementById('income-display').textContent = '"' + p.incomeRange + '，在' + p.city + '打拼"';
       
-      // 检查成就
-      if (count === 5) {
-        showAchievementPopup('💰', '小财迷', '涨工资5次！你对钱很有想法啊~');
-      } else if (count === 15) {
-        showAchievementPopup('🤑', '掉钱眼儿里了', '涨工资15次！你眼里只有钱了吧？');
-      } else if (count >= 30) {
-        // 30次直接结束游戏
+      // 检查成就彩蛋
+      if (count === 1) {
+        showAchievementPopup('💰', '小财迷', '继续涨涨试试~');
+      } else if (count === 5) {
+        showAchievementPopup('🤑', '掉钱眼儿里了', '要不胆子再大点儿？');
+      } else if (count === 10) {
+        showAchievementPopup('📦', '离职大礼包', '恭喜你喜提N+1！老板已经在路上了...');
+      } else if (count >= 15) {
+        // 15次触发财神结局
         showMoneyGodEnding();
       }
     });
@@ -885,19 +887,22 @@
     screens.dialogue.innerHTML = `
       <div class="card" style="padding:12px 16px;margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-family:var(--font-title);font-size:20px;color:var(--text-red);">🗣️ 酒桌对话${engine.state.difficulty === 'hell' ? ' <span style="font-size:12px;color:#ff4444;background:#1a1a2e;padding:2px 6px;border-radius:4px;border:1px solid #ff4444;vertical-align:middle;">☠️地狱</span>' : engine.state.difficulty === 'hard' ? ' <span style="font-size:12px;color:var(--gold-dark);background:var(--card-bg-alt);padding:2px 6px;border-radius:4px;border:1px solid var(--gold);vertical-align:middle;">🔥困难</span>' : ''}</span>
+          <span style="font-family:var(--font-title);font-size:20px;color:var(--text-red);">🗣️ 酒桌对话${engine.state.difficulty === 'hell' ? ' <span style="font-size:12px;color:#FFF;background:linear-gradient(135deg,#8B0000,#FF4500);padding:2px 6px;border-radius:4px;vertical-align:middle;">🧨超级大家族</span>' : engine.state.difficulty === 'hard' ? ' <span style="font-size:12px;color:var(--gold-dark);background:var(--card-bg-alt);padding:2px 6px;border-radius:4px;border:1px solid var(--gold);vertical-align:middle;">🔥年夜大桌</span>' : ''}</span>
           <span id="round-counter" style="color:var(--text-muted);font-size:12px;">第 1/${ds.totalRounds} 轮</span>
         </div>
         <div class="progress-bar"><div class="progress-bar-fill" id="round-progress" style="width:${(100/ds.totalRounds).toFixed(1)}%;"></div></div>
       </div>
       <div id="dialogue-avatars" style="display:flex;justify-content:center;gap:${engine.state.relatives.length > 10 ? '4px' : '10px'};margin-bottom:12px;flex-wrap:wrap;${engine.state.relatives.length > 10 ? 'max-height:120px;overflow-y:auto;padding:4px;' : ''}"></div>
       <div style="text-align:center;margin-bottom:10px;">
-        <div style="display:inline-flex;align-items:end;gap:8px;">
+        <div style="display:inline-flex;align-items:end;gap:8px;flex-wrap:wrap;justify-content:center;">
           <div class="glass-container" id="glass-container" title="点击续酒">
             <div class="glass-fill" id="glass-fill" style="height:100%;"></div>
           </div>
           <span id="glass-alert" style="color:var(--warning);font-size:16px;display:none;animation:pulse 1s infinite;">⚠️</span>
           <button id="btn-self-refill" class="btn-secondary" style="font-size:11px;padding:4px 10px;white-space:nowrap;">🍶 给自己满酒</button>
+          <button id="btn-eat-food" class="btn-secondary" style="font-size:11px;padding:4px 10px;white-space:nowrap;">🥢 扒拉两口菜</button>
+          <button id="btn-play-phone" class="btn-secondary" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📱 玩手机</button>
+          <button id="btn-go-toilet" class="btn-secondary" style="font-size:11px;padding:4px 10px;white-space:nowrap;">🚽 上厕所</button>
         </div>
       </div>
       <div id="dialogue-area" class="card-dialogue" style="min-height:200px;">
@@ -934,13 +939,160 @@
       dk.refillGlass(); dk.cancelEmptyTimer(); updateGlass();
     });
 
+    // 扒拉两口菜：面子-，酒精-，心态+，但可能吃到难吃的菜或撞到长辈夹菜
+    document.getElementById('btn-eat-food').addEventListener('click', () => {
+      const area = document.getElementById('dialogue-area');
+      const roll = Math.random();
+      
+      if (roll < 0.2) {
+        // 20% 吃到难吃的菜
+        const badFoods = ['🥦 煮过头的西兰花', '🧅 生洋葱', '🫒 苦瓜', '🥒 拍黄瓜蘸醋'];
+        const food = badFoods[Math.floor(Math.random() * badFoods.length)];
+        const moodLoss = -(3 + Math.floor(Math.random() * 5));
+        engine.adjustMood(moodLoss);
+        engine.adjustAlcohol(-3);
+        const msg = document.createElement('div');
+        msg.className = 'card-reaction';
+        msg.style.marginTop = '10px';
+        msg.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:24px;">🤢</span>
+            <span style="color:var(--text-body);font-size:14px;">你夹了一口${food}...好难吃！</span>
+          </div>
+          <div style="display:flex;gap:16px;font-size:12px;padding-top:6px;border-top:1px solid var(--card-border);margin-top:6px;">
+            <span>心态 <span style="color:var(--error);">${moodLoss}</span></span>
+            <span>酒精 <span style="color:var(--green);">-3</span></span>
+          </div>
+        `;
+        area.appendChild(msg);
+      } else if (roll < 0.35) {
+        // 15% 转桌子撞到长辈夹菜
+        const elder = engine.state.relatives.find(r => r.type.startsWith('长辈')) || engine.state.relatives[0];
+        engine.adjustFace(-8);
+        engine.adjustMood(-5);
+        const msg = document.createElement('div');
+        msg.className = 'card-reaction';
+        msg.style.marginTop = '10px';
+        msg.style.borderLeftColor = 'var(--error)';
+        msg.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${avatarHTML(elder, 'avatar-frame-sm')}
+            <span style="color:var(--error);font-size:14px;">${elder.name}正在夹菜，你转桌子把菜转走了！"这孩子，没规矩！"</span>
+          </div>
+          <div style="display:flex;gap:16px;font-size:12px;padding-top:6px;border-top:1px solid var(--card-border);margin-top:6px;">
+            <span>面子 <span style="color:var(--error);">-8</span></span>
+            <span>心态 <span style="color:var(--error);">-5</span></span>
+          </div>
+        `;
+        area.appendChild(msg);
+      } else {
+        // 65% 正常吃菜
+        const foods = ['🥟 饺子', '🍖 红烧肉', '🥘 炖菜', '🍲 火锅', '🥬 炒青菜', '🍗 鸡腿', '🧆 丸子', '🥩 酱牛肉', '🦐 大虾', '🐟 清蒸鱼'];
+        const food = foods[Math.floor(Math.random() * foods.length)];
+        const moodGain = 3 + Math.floor(Math.random() * 5);
+        const faceLoss = -(1 + Math.floor(Math.random() * 3));
+        engine.adjustMood(moodGain);
+        engine.adjustFace(faceLoss);
+        engine.adjustAlcohol(-5);
+        const msg = document.createElement('div');
+        msg.className = 'card-reaction';
+        msg.style.marginTop = '10px';
+        msg.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:24px;">🥢</span>
+            <span style="color:var(--text-body);font-size:14px;">你夹了一筷子${food}，真香~</span>
+          </div>
+          <div style="display:flex;gap:16px;font-size:12px;padding-top:6px;border-top:1px solid var(--card-border);margin-top:6px;">
+            <span>心态 <span style="color:var(--green);">+${moodGain}</span></span>
+            <span>面子 <span style="color:var(--error);">${faceLoss}</span></span>
+            <span>酒精 <span style="color:var(--green);">-5</span></span>
+          </div>
+        `;
+        area.appendChild(msg);
+      }
+    });
+
+    // 玩手机：心态+1，但可能被长辈抓到敬酒
+    document.getElementById('btn-play-phone').addEventListener('click', () => {
+      engine.adjustMood(1);
+      const area = document.getElementById('dialogue-area');
+      
+      if (Math.random() < 0.2) {
+        const elder = engine.state.relatives.find(r => r.type.startsWith('长辈')) || engine.state.relatives[0];
+        const msg = document.createElement('div');
+        msg.className = 'card-reaction';
+        msg.style.marginTop = '10px';
+        msg.style.borderLeftColor = 'var(--error)';
+        msg.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${avatarHTML(elder, 'avatar-frame-sm')}
+            <span style="color:var(--error);font-size:14px;">${elder.name}："别玩手机了！来，喝一杯！"</span>
+          </div>
+          <div style="font-size:12px;padding-top:6px;border-top:1px solid var(--card-border);margin-top:6px;">
+            <span>心态 <span style="color:var(--green);">+1</span></span>
+          </div>
+        `;
+        area.appendChild(msg);
+        setTimeout(() => {
+          showToastPopup(() => {});
+        }, 800);
+      } else {
+        const apps = ['刷了会儿朋友圈', '看了两条短视频', '回了条微信消息', '偷偷拍了张菜的照片'];
+        const app = apps[Math.floor(Math.random() * apps.length)];
+        const msg = document.createElement('div');
+        msg.className = 'card-reaction';
+        msg.style.marginTop = '10px';
+        msg.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:24px;">📱</span>
+            <span style="color:var(--text-body);font-size:14px;">你低头${app}，没人注意到</span>
+          </div>
+          <div style="font-size:12px;padding-top:6px;border-top:1px solid var(--card-border);margin-top:6px;">
+            <span>心态 <span style="color:var(--green);">+1</span></span>
+          </div>
+        `;
+        area.appendChild(msg);
+      }
+    });
+
+    // 上厕所：面子-5，酒精-10
+    document.getElementById('btn-go-toilet').addEventListener('click', () => {
+      engine.adjustFace(-5);
+      engine.adjustAlcohol(-10);
+      const area = document.getElementById('dialogue-area');
+      const msg = document.createElement('div');
+      msg.className = 'card-reaction';
+      msg.style.marginTop = '10px';
+      msg.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:24px;">🚽</span>
+          <span style="color:var(--text-body);font-size:14px;">你借口上厕所溜了一会儿，舒服多了</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;padding-top:6px;border-top:1px solid var(--card-border);margin-top:6px;">
+          <span>面子 <span style="color:var(--error);">-5</span></span>
+          <span>酒精 <span style="color:var(--green);">-10</span></span>
+        </div>
+      `;
+      area.appendChild(msg);
+    });
+
     let isDialogueLocked = false; // 防止连续点击跳轮
 
     function startAutoTimer() {
       ds.startAutoTimer(async () => {
-        const idx = Math.floor(Math.random() * engine.state.relatives.length);
-        await handleDialogue(idx);
-      }, 10000);
+        // 3秒没触发对话，随机有人敬酒
+        const toastChance = Math.random();
+        if (toastChance < 0.6) {
+          // 60%概率敬酒
+          showToastPopup(() => {
+            startAutoTimer(); // 敬酒后继续计时
+          });
+        } else {
+          // 40%概率触发对话
+          const idx = Math.floor(Math.random() * engine.state.relatives.length);
+          await handleDialogue(idx);
+        }
+      }, 3000); // 改为3秒
     }
 
     // 打字机效果函数
@@ -1051,21 +1203,48 @@
         </div>
       `;
 
-      // 按轮次和难度确定敬酒人数
+      // 按轮次确定敬酒人数：第N轮后有N次敬酒
       const currentRound = ds.getCurrentRound();
-      const diff = engine.state.difficulty;
-      let toastCount = 0;
-      if (diff === 'hell') {
-        // 地狱：第1轮1人，第2轮2人，第3轮3人，第4轮4人，第5轮5人
-        toastCount = currentRound;
-      } else if (diff === 'hard') {
-        // 困难：第2轮起1人，第3轮2人，第4轮3人，第5轮4人
-        if (currentRound >= 2) toastCount = currentRound - 1;
-      } else {
-        // 普通：第3轮2人，第4轮3人
-        if (currentRound === 3) toastCount = 2;
-        else if (currentRound === 4) toastCount = 3;
-        else if (currentRound >= 5) toastCount = 0; // 第5轮结束后统一倒酒
+      let toastCount = currentRound;
+      
+      // 检查面子或心态是否崩溃
+      if (engine.checkFaceCollapse()) {
+        ds.clearAutoTimer();
+        engine.endGame('face_collapse');
+        renderResult(false, null, 'face_collapse');
+        showScreen('result');
+        return;
+      }
+      if (engine.checkMoodCollapse()) {
+        ds.clearAutoTimer();
+        engine.endGame('mood_collapse');
+        renderResult(false, null, 'mood_collapse');
+        showScreen('result');
+        return;
+      }
+      
+      // 面子低于30时，触发"提一杯"救命选项
+      if (engine.state.scores.face < 30) {
+        engine.state.rescueUsed = true;
+        showRescueToast(() => {
+          // 救命敬酒后继续
+          if (toastCount > 0 && !ds.isPhaseComplete()) {
+            let toastIndex = 0;
+            function chainToast2() {
+              if (toastIndex < toastCount) {
+                toastIndex++;
+                setTimeout(() => showToastPopup(chainToast2), 1500);
+              } else {
+                // 敬酒链结束，恢复对话
+                afterToastsComplete();
+              }
+            }
+            chainToast2();
+          } else {
+            afterToastsComplete();
+          }
+        });
+        return; // 先处理救命敬酒
       }
       
       if (toastCount > 0 && !ds.isPhaseComplete()) {
@@ -1074,6 +1253,9 @@
           if (toastIndex < toastCount) {
             toastIndex++;
             setTimeout(() => showToastPopup(chainToast), 1500);
+          } else {
+            // 敬酒链结束，恢复对话
+            afterToastsComplete();
           }
         }
         chainToast();
@@ -1088,14 +1270,20 @@
         });
       }
 
-      setTimeout(() => {
-        if (ds.isPhaseComplete()) {
-          // 最后一轮结束，给所有亲戚倒酒
-          showFinalRefillScene(() => {
-            engine.transition('TOAST'); renderToast(); showScreen('toast');
-          });
-        } else { isDialogueLocked = false; startAutoTimer(); }
-      }, 2000);
+      // 没有敬酒时直接走这里
+      if (toastCount === 0) {
+        afterToastsComplete();
+      }
+
+      function afterToastsComplete() {
+        setTimeout(() => {
+          if (ds.isPhaseComplete()) {
+            showFinalRefillScene(() => {
+              engine.transition('TOAST'); renderToast(); showScreen('toast');
+            });
+          } else { isDialogueLocked = false; startAutoTimer(); }
+        }, toastCount > 0 ? 500 : 2000);
+      }
     }
 
     function showToastPopup(onComplete) {
@@ -1153,6 +1341,137 @@
               const result = dk.respondToast(btn.dataset.choice);
               updateGlass();
               
+              // 检查酒精度是否危险
+              if (engine.state.scores.alcohol >= 30 && engine.state.scores.alcohol < 100) {
+                // 酒精度30-99，显示解酒选项
+                popup.innerHTML = `
+                  <div class="popup-overlay">
+                    <div class="popup-card" style="max-width:420px;">
+                      <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+                      <p style="font-family:var(--font-title);font-size:24px;color:var(--error);margin-bottom:8px;">酒精度过高！</p>
+                      <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;line-height:1.8;">
+                        当前酒精度：<span style="color:var(--error);font-weight:700;font-size:18px;">${engine.state.scores.alcohol}</span><br>
+                        再喝就要断片了！要不要解解酒？
+                      </p>
+                      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                        <button class="btn-option" data-action="toilet">🚽 去厕所吐 <span style="float:right;color:var(--text-muted);font-size:11px;">面子-5 · 酒精-10</span></button>
+                        <button class="btn-option" data-action="exercise">🧘 打一段八段锦 <span style="float:right;color:var(--text-muted);font-size:11px;">面子-10 · 酒精-20 · 心态+10</span></button>
+                        <button class="btn-option" data-action="water">💧 往酒杯里倒水 <span style="float:right;color:var(--text-muted);font-size:11px;">30%被发现</span></button>
+                      </div>
+                      <button class="btn-secondary" id="btn-skip-sober-2" style="width:100%;padding:10px;">算了，继续喝</button>
+                    </div>
+                  </div>
+                `;
+                
+                popup.querySelectorAll('.btn-option').forEach(btn => {
+                  btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    
+                    if (action === 'toilet') {
+                      engine.adjustFace(-5);
+                      engine.adjustAlcohol(-10);
+                      popup.innerHTML = `
+                        <div class="popup-overlay">
+                          <div class="popup-card" style="max-width:360px;">
+                            <div style="font-size:48px;margin-bottom:12px;">🚽</div>
+                            <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">去厕所吐了</p>
+                            <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">舒服多了，但被亲戚们看到了...</p>
+                            <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                              <span style="color:var(--error);">面子 -5</span> · <span style="color:var(--green);">酒精 -10</span>
+                            </div>
+                            <button class="btn-red" id="btn-continue-5" style="width:100%;padding:12px;">继续</button>
+                          </div>
+                        </div>
+                      `;
+                      document.getElementById('btn-continue-5').addEventListener('click', () => {
+                        showRefillScene(toastingRelative, onComplete);
+                      });
+                      
+                    } else if (action === 'exercise') {
+                      engine.adjustFace(-10);
+                      engine.adjustAlcohol(-20);
+                      engine.adjustMood(10);
+                      popup.innerHTML = `
+                        <div class="popup-overlay">
+                          <div class="popup-card" style="max-width:360px;">
+                            <div style="font-size:48px;margin-bottom:12px;">🧘</div>
+                            <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">打了一段八段锦</p>
+                            <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">全场目瞪口呆，但你感觉好多了</p>
+                            <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                              <span style="color:var(--error);">面子 -10</span> · <span style="color:var(--green);">酒精 -20</span> · <span style="color:var(--green);">心态 +10</span>
+                            </div>
+                            <button class="btn-red" id="btn-continue-6" style="width:100%;padding:12px;">继续</button>
+                          </div>
+                        </div>
+                      `;
+                      document.getElementById('btn-continue-6').addEventListener('click', () => {
+                        showRefillScene(toastingRelative, onComplete);
+                      });
+                      
+                    } else if (action === 'water') {
+                      const caught = Math.random() < 0.3;
+                      
+                      if (caught) {
+                        engine.adjustFace(-20);
+                        engine.adjustAlcohol(30);
+                        popup.innerHTML = `
+                          <div class="popup-overlay">
+                            <div class="popup-card" style="max-width:360px;">
+                              <div style="font-size:48px;margin-bottom:12px;">😱</div>
+                              <p style="font-family:var(--font-title);font-size:20px;color:var(--error);margin-bottom:8px;">被发现了！</p>
+                              <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">
+                                ${toastingRelative.name}：<br>
+                                "好家伙，往酒杯里倒水？<br>
+                                这是看不起我们啊！<br>
+                                罚酒一杯！"
+                              </p>
+                              <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;border-left:3px solid var(--error);">
+                                <span style="color:var(--error);font-weight:700;">面子 -20</span> · <span style="color:var(--error);font-weight:700;">酒精 +30</span>
+                              </div>
+                              <button class="btn-red" id="btn-continue-7" style="width:100%;padding:12px;">认罚...</button>
+                            </div>
+                          </div>
+                        `;
+                        document.getElementById('btn-continue-7').addEventListener('click', () => {
+                          if (engine.state.scores.alcohol >= 100) {
+                            popup.style.display = 'none';
+                            popup.innerHTML = '';
+                            renderResult(true);
+                            showScreen('result');
+                            return;
+                          }
+                          showRefillScene(toastingRelative, onComplete);
+                        });
+                      } else {
+                        engine.adjustAlcohol(-15);
+                        popup.innerHTML = `
+                          <div class="popup-overlay">
+                            <div class="popup-card" style="max-width:360px;">
+                              <div style="font-size:48px;margin-bottom:12px;">😏</div>
+                              <p style="font-family:var(--font-title);font-size:20px;color:var(--green);margin-bottom:8px;">成功了！</p>
+                              <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">趁人不注意往杯子里倒了点水，没人发现</p>
+                              <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                                <span style="color:var(--green);">酒精 -15</span>
+                              </div>
+                              <button class="btn-red" id="btn-continue-8" style="width:100%;padding:12px;">继续</button>
+                            </div>
+                          </div>
+                        `;
+                        document.getElementById('btn-continue-8').addEventListener('click', () => {
+                          showRefillScene(toastingRelative, onComplete);
+                        });
+                      }
+                    }
+                  });
+                });
+                
+                document.getElementById('btn-skip-sober-2').addEventListener('click', () => {
+                  showRefillScene(toastingRelative, onComplete);
+                });
+                
+                return;
+              }
+              
               if (result.isDrunk) { 
                 popup.style.display = 'none'; 
                 popup.innerHTML = '';
@@ -1191,6 +1510,143 @@
         btn.addEventListener('click', () => {
           const result = dk.respondToast(btn.dataset.choice);
           updateGlass();
+          
+          // 检查酒精度是否危险
+          if (engine.state.scores.alcohol >= 30 && engine.state.scores.alcohol < 100) {
+            // 酒精度30-99，显示解酒选项
+            popup.innerHTML = `
+              <div class="popup-overlay">
+                <div class="popup-card" style="max-width:420px;">
+                  <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+                  <p style="font-family:var(--font-title);font-size:24px;color:var(--error);margin-bottom:8px;">酒精度过高！</p>
+                  <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;line-height:1.8;">
+                    当前酒精度：<span style="color:var(--error);font-weight:700;font-size:18px;">${engine.state.scores.alcohol}</span><br>
+                    再喝就要断片了！要不要解解酒？
+                  </p>
+                  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                    <button class="btn-option" data-action="toilet">🚽 去厕所吐 <span style="float:right;color:var(--text-muted);font-size:11px;">面子-5 · 酒精-10</span></button>
+                    <button class="btn-option" data-action="exercise">🧘 打一段八段锦 <span style="float:right;color:var(--text-muted);font-size:11px;">面子-10 · 酒精-20 · 心态+10</span></button>
+                    <button class="btn-option" data-action="water">💧 往酒杯里倒水 <span style="float:right;color:var(--text-muted);font-size:11px;">30%被发现</span></button>
+                  </div>
+                  <button class="btn-secondary" id="btn-skip-sober" style="width:100%;padding:10px;">算了，继续喝</button>
+                </div>
+              </div>
+            `;
+            
+            popup.querySelectorAll('.btn-option').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                
+                if (action === 'toilet') {
+                  // 去厕所吐
+                  engine.adjustFace(-5);
+                  engine.adjustAlcohol(-10);
+                  popup.innerHTML = `
+                    <div class="popup-overlay">
+                      <div class="popup-card" style="max-width:360px;">
+                        <div style="font-size:48px;margin-bottom:12px;">🚽</div>
+                        <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">去厕所吐了</p>
+                        <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">舒服多了，但被亲戚们看到了...</p>
+                        <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                          <span style="color:var(--error);">面子 -5</span> · <span style="color:var(--green);">酒精 -10</span>
+                        </div>
+                        <button class="btn-red" id="btn-continue-1" style="width:100%;padding:12px;">继续</button>
+                      </div>
+                    </div>
+                  `;
+                  document.getElementById('btn-continue-1').addEventListener('click', () => {
+                    showRefillScene(toastingRelative, onComplete);
+                  });
+                  
+                } else if (action === 'exercise') {
+                  // 打八段锦
+                  engine.adjustFace(-10);
+                  engine.adjustAlcohol(-20);
+                  engine.adjustMood(10);
+                  popup.innerHTML = `
+                    <div class="popup-overlay">
+                      <div class="popup-card" style="max-width:360px;">
+                        <div style="font-size:48px;margin-bottom:12px;">🧘</div>
+                        <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">打了一段八段锦</p>
+                        <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">全场目瞪口呆，但你感觉好多了</p>
+                        <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                          <span style="color:var(--error);">面子 -10</span> · <span style="color:var(--green);">酒精 -20</span> · <span style="color:var(--green);">心态 +10</span>
+                        </div>
+                        <button class="btn-red" id="btn-continue-2" style="width:100%;padding:12px;">继续</button>
+                      </div>
+                    </div>
+                  `;
+                  document.getElementById('btn-continue-2').addEventListener('click', () => {
+                    showRefillScene(toastingRelative, onComplete);
+                  });
+                  
+                } else if (action === 'water') {
+                  // 往酒杯里倒水
+                  const caught = Math.random() < 0.3; // 30%被发现
+                  
+                  if (caught) {
+                    // 被发现了
+                    engine.adjustFace(-20);
+                    engine.adjustAlcohol(30); // 还要再干一杯
+                    popup.innerHTML = `
+                      <div class="popup-overlay">
+                        <div class="popup-card" style="max-width:360px;">
+                          <div style="font-size:48px;margin-bottom:12px;">😱</div>
+                          <p style="font-family:var(--font-title);font-size:20px;color:var(--error);margin-bottom:8px;">被发现了！</p>
+                          <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">
+                            ${toastingRelative.name}：<br>
+                            "好家伙，往酒杯里倒水？<br>
+                            这是看不起我们啊！<br>
+                            罚酒一杯！"
+                          </p>
+                          <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;border-left:3px solid var(--error);">
+                            <span style="color:var(--error);font-weight:700;">面子 -20</span> · <span style="color:var(--error);font-weight:700;">酒精 +30</span>
+                          </div>
+                          <button class="btn-red" id="btn-continue-3" style="width:100%;padding:12px;">认罚...</button>
+                        </div>
+                      </div>
+                    `;
+                    document.getElementById('btn-continue-3').addEventListener('click', () => {
+                      // 检查是否喝醉
+                      if (engine.state.scores.alcohol >= 100) {
+                        popup.style.display = 'none';
+                        popup.innerHTML = '';
+                        renderResult(true);
+                        showScreen('result');
+                        return;
+                      }
+                      showRefillScene(toastingRelative, onComplete);
+                    });
+                  } else {
+                    // 没被发现
+                    engine.adjustAlcohol(-15);
+                    popup.innerHTML = `
+                      <div class="popup-overlay">
+                        <div class="popup-card" style="max-width:360px;">
+                          <div style="font-size:48px;margin-bottom:12px;">😏</div>
+                          <p style="font-family:var(--font-title);font-size:20px;color:var(--green);margin-bottom:8px;">成功了！</p>
+                          <p style="color:var(--text-body);font-size:14px;margin-bottom:16px;">趁人不注意往杯子里倒了点水，没人发现</p>
+                          <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                            <span style="color:var(--green);">酒精 -15</span>
+                          </div>
+                          <button class="btn-red" id="btn-continue-4" style="width:100%;padding:12px;">继续</button>
+                        </div>
+                      </div>
+                    `;
+                    document.getElementById('btn-continue-4').addEventListener('click', () => {
+                      showRefillScene(toastingRelative, onComplete);
+                    });
+                  }
+                }
+              });
+            });
+            
+            document.getElementById('btn-skip-sober').addEventListener('click', () => {
+              showRefillScene(toastingRelative, onComplete);
+            });
+            
+            return;
+          }
           
           if (result.isDrunk) { 
             popup.style.display = 'none'; 
@@ -1321,6 +1777,121 @@
             }, 500);
           }
         });
+      });
+    }
+
+    // ── 提一杯救命 ──
+    function showRescueToast(onComplete) {
+      const popup = document.getElementById('toast-popup');
+      const relatives = engine.state.relatives;
+      const s = engine.state.scores;
+      const lowFace = s.face < 10;
+      const lowMood = s.mood < 10;
+      
+      popup.style.display = 'block';
+      popup.innerHTML = `
+        <div class="popup-overlay">
+          <div class="popup-card" style="max-width:420px;">
+            <div style="font-size:48px;margin-bottom:12px;">${lowFace && lowMood ? '😰' : lowFace ? '😓' : '😵'}</div>
+            <p style="font-family:var(--font-title);font-size:22px;color:var(--error);margin-bottom:4px;">
+              ${lowFace && lowMood ? '面子和心态都快撑不住了！' : lowFace ? '面子快丢光了！' : '心态快崩了！'}
+            </p>
+            <p style="color:var(--text-body);font-size:14px;margin-bottom:8px;line-height:1.8;">
+              当前：${lowFace ? `<span style="color:var(--error);font-weight:700;">面子 ${s.face}</span>` : `面子 ${s.face}`}
+              · ${lowMood ? `<span style="color:var(--error);font-weight:700;">心态 ${s.mood}</span>` : `心态 ${s.mood}`}
+            </p>
+            <p style="color:var(--gold-dark);font-size:13px;margin-bottom:16px;">💡 主动给一位亲戚提一杯，说点好话挽回局面！</p>
+            <div style="display:grid;grid-template-columns:repeat(${relatives.length > 10 ? 5 : relatives.length > 5 ? 5 : 3},1fr);gap:8px;margin-bottom:16px;${relatives.length > 10 ? 'max-height:40vh;overflow-y:auto;' : ''}" id="rescue-grid">
+              ${relatives.map((r, i) => `
+                <div style="text-align:center;padding:6px;background:var(--card-bg-alt);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" class="rescue-target" data-index="${i}">
+                  ${avatarHTML(r, 'avatar-frame-sm')}
+                  <div style="font-size:10px;color:var(--text-muted);margin:3px 0;">${r.name}</div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn-secondary" id="btn-skip-rescue" style="width:100%;padding:10px;">算了，硬撑</button>
+          </div>
+        </div>
+      `;
+      
+      document.querySelectorAll('.rescue-target').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.index);
+          const target = relatives[idx];
+          
+          // 选中后显示祝酒辞输入
+          popup.innerHTML = `
+            <div class="popup-overlay">
+              <div class="popup-card" style="max-width:420px;">
+                <div style="margin-bottom:12px;">${avatarHTML(target, 'avatar-frame-lg')}</div>
+                <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:4px;">🥂 向${target.name}提一杯</p>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:12px;">${target.title} · ${target.traits[0]}</p>
+                <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+                  <span class="tag-gold tag">💡 提到名字加分</span>
+                  <span class="tag-gold tag">💡 说点好听的</span>
+                </div>
+                <textarea id="rescue-toast-input" placeholder="说点祝福的话..." style="width:100%;height:100px;background:#FFF;color:var(--text-dark);border:1px solid var(--card-border);border-radius:var(--r-sm);padding:12px;font-size:14px;font-family:var(--font-body);resize:none;" maxlength="200"></textarea>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:12px;">
+                  <span style="font-size:11px;color:var(--text-muted);"><span id="rescue-char-count">0</span>/200</span>
+                </div>
+                <button class="btn-red" id="btn-submit-rescue" style="width:100%;padding:12px;font-size:16px;">🥂 敬酒</button>
+              </div>
+            </div>
+          `;
+          
+          const rinput = document.getElementById('rescue-toast-input');
+          const rcount = document.getElementById('rescue-char-count');
+          rinput.addEventListener('input', () => { rcount.textContent = rinput.value.length; });
+          
+          document.getElementById('btn-submit-rescue').addEventListener('click', async () => {
+            const text = rinput.value.trim();
+            if (!text) { rinput.style.borderColor = 'var(--error)'; return; }
+            
+            const submitBtn = document.getElementById('btn-submit-rescue');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🤔 品鉴中...';
+            
+            const scoreResult = await aiProvider.scoreToast(text, [target]);
+            const score = Math.max(scoreResult.score || 0, 0);
+            
+            // 根据得分恢复面子和心态
+            const faceGain = Math.round(score * 0.6);
+            const moodGain = Math.round(score * 0.4);
+            engine.adjustFace(faceGain);
+            engine.adjustMood(moodGain);
+            
+            popup.innerHTML = `
+              <div class="popup-overlay">
+                <div class="popup-card" style="max-width:400px;">
+                  <div style="font-size:48px;margin-bottom:12px;">${score >= 15 ? '🎉' : score >= 8 ? '👍' : '😅'}</div>
+                  <p style="font-family:var(--font-title);font-size:20px;color:var(--text-red);margin-bottom:8px;">
+                    ${score >= 15 ? '说得太好了！' : score >= 8 ? '还不错！' : '一般般...'}
+                  </p>
+                  <p style="color:var(--text-body);font-size:14px;margin-bottom:12px;">
+                    ${target.name}：${score >= 15 ? '"这孩子会说话！"' : score >= 8 ? '"嗯，有心了"' : '"就这？"'}
+                  </p>
+                  ${scoreResult.comment ? `<p style="color:var(--text-muted);font-size:12px;margin-bottom:12px;">🤖 ${scoreResult.comment}</p>` : ''}
+                  <div style="padding:12px;background:var(--card-bg-alt);border-radius:var(--r-sm);margin-bottom:16px;">
+                    <span style="color:var(--green);">面子 +${faceGain}</span> · <span style="color:var(--green);">心态 +${moodGain}</span>
+                  </div>
+                  <button class="btn-red" id="btn-rescue-done" style="width:100%;padding:12px;">继续</button>
+                </div>
+              </div>
+            `;
+            
+            document.getElementById('btn-rescue-done').addEventListener('click', () => {
+              popup.style.display = 'none';
+              popup.innerHTML = '';
+              if (onComplete) onComplete();
+            });
+          });
+        });
+      });
+      
+      document.getElementById('btn-skip-rescue').addEventListener('click', () => {
+        popup.style.display = 'none';
+        popup.innerHTML = '';
+        if (onComplete) onComplete();
       });
     }
 
@@ -1464,19 +2035,35 @@
   }
 
   // ── 结算 ──
-  function renderResult(isDrunk = false, toastScore = null) {
+  function renderResult(isDrunk = false, toastScore = null, endReason = null) {
     const s = engine.state.scores;
     const achievements = engine.state.achievements;
     const p = engine.state.player;
+
+    // 根据结束原因确定标题
+    let endIcon = '🎊', endTitle = '酒桌战报';
+    if (endReason === 'face_collapse') { endIcon = '😱'; endTitle = '面子丢光了...'; }
+    else if (endReason === 'mood_collapse') { endIcon = '🤯'; endTitle = '心态爆炸了...'; }
+    else if (isDrunk) { endIcon = '🍺'; endTitle = '不省人事...'; }
 
     screens.result.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0;">
         <div id="result-card" class="card-main" style="width:100%;max-width:400px;">
           <div style="text-align:center;margin-bottom:16px;">
-            <div style="font-size:40px;margin-bottom:4px;">${isDrunk ? '🍺' : '🎊'}</div>
-            <h2 style="font-family:var(--font-title);font-size:28px;color:var(--text-red);">${isDrunk ? '不省人事...' : '酒桌战报'}</h2>
+            <div style="font-size:40px;margin-bottom:4px;">${endIcon}</div>
+            <h2 style="font-family:var(--font-title);font-size:28px;color:var(--text-red);">${endTitle}</h2>
             <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${p.name} · ${p.age}岁 · ${p.job}</div>
           </div>
+
+          ${endReason === 'face_collapse' ? `
+          <div style="text-align:center;margin-bottom:16px;padding:14px;background:linear-gradient(135deg,#fff5f5,#ffe0e0);border-radius:var(--r-sm);border:1px solid var(--error);">
+            <p style="font-size:15px;color:var(--error);line-height:1.8;">面子掉到了 <span style="font-weight:700;font-size:20px;">${s.face}</span> 点<br>亲戚们纷纷摇头叹气，你灰溜溜地离开了酒桌...</p>
+          </div>
+          ` : endReason === 'mood_collapse' ? `
+          <div style="text-align:center;margin-bottom:16px;padding:14px;background:linear-gradient(135deg,#f5f0ff,#e8e0ff);border-radius:var(--r-sm);border:1px solid #9b59b6;">
+            <p style="font-size:15px;color:#8e44ad;line-height:1.8;">心态值跌到了 <span style="font-weight:700;font-size:20px;">${s.mood}</span> 点<br>你一拍桌子站起来："不聊了！"，摔门而去...</p>
+          </div>
+          ` : ''}
 
           <div class="stats-row" style="margin-bottom:16px;">
             <div class="stat-col"><div class="stat-lbl">😎 面子</div><div class="stat-num" style="font-size:30px;">${s.face}</div></div>
@@ -1516,24 +2103,24 @@
         ${engine.state.difficulty === 'normal' ? `
         <div style="margin-top:16px;text-align:center;">
           <button class="btn-gold" id="btn-hard-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;">
-            🔥 挑战困难模式
+            🔥 挑战年夜大桌
           </button>
-          <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">10位亲戚 · 5轮对话 · 更多成就</p>
+          <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">10位亲戚 · 15轮敬酒 · 更多成就</p>
         </div>
         ` : engine.state.difficulty === 'hard' ? `
         <div style="margin-top:16px;text-align:center;">
           <div style="display:inline-block;padding:8px 16px;background:var(--card-bg-alt);border-radius:8px;border:1px solid var(--gold);margin-bottom:10px;">
-            <span style="font-size:13px;color:var(--gold-dark);font-weight:700;">🔥 困难模式已通关</span>
+            <span style="font-size:13px;color:var(--gold-dark);font-weight:700;">🔥 年夜大桌已通关</span>
           </div>
-          <button class="btn-gold" id="btn-hell-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#ff4444;border:2px solid #ff4444;">
-            ☠️ 挑战地狱模式
+          <button class="btn-gold" id="btn-hell-mode" style="width:100%;max-width:320px;padding:14px;font-size:16px;letter-spacing:2px;background:linear-gradient(135deg,#8B0000,#FF4500);color:#FFF;border:2px solid #FF6347;">
+            🧨 挑战超级大家族
           </button>
-          <p style="color:var(--error);font-size:11px;margin-top:6px;">50位亲戚 · 5轮对话 · 你确定？</p>
+          <p style="color:var(--error);font-size:11px;margin-top:6px;">50位亲戚 · 100轮敬酒 · 你确定？</p>
         </div>
         ` : `
         <div style="margin-top:16px;text-align:center;">
-          <div style="display:inline-block;padding:8px 16px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:8px;border:1px solid #ff4444;">
-            <span style="font-size:13px;color:#ff4444;font-weight:700;">☠️ 地狱模式已通关</span>
+          <div style="display:inline-block;padding:8px 16px;background:linear-gradient(135deg,#8B0000,#FF4500);border-radius:8px;border:1px solid #FF6347;">
+            <span style="font-size:13px;color:#FFF;font-weight:700;">🧨 超级大家族已通关</span>
           </div>
         </div>
         `}
