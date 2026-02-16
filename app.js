@@ -2159,8 +2159,32 @@
   }
 
   // ── BGM ──
-  let bgmPlaying = false;
-  bgmToggle.addEventListener('click', () => { bgmPlaying = !bgmPlaying; bgmToggle.textContent = bgmPlaying ? '🔊' : '🔇'; });
+  const bgmAudio = document.getElementById('bgm-audio');
+  bgmAudio.volume = 0.3;
+  let bgmPlaying = true;
+  
+  // 浏览器要求用户交互后才能播放音频，监听首次点击
+  function tryPlayBGM() {
+    if (bgmPlaying) {
+      bgmAudio.play().catch(() => {});
+    }
+    document.removeEventListener('click', tryPlayBGM);
+    document.removeEventListener('touchstart', tryPlayBGM);
+  }
+  document.addEventListener('click', tryPlayBGM);
+  document.addEventListener('touchstart', tryPlayBGM);
+  
+  bgmToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    bgmPlaying = !bgmPlaying;
+    if (bgmPlaying) {
+      bgmAudio.play().catch(() => {});
+      bgmToggle.textContent = '🔊';
+    } else {
+      bgmAudio.pause();
+      bgmToggle.textContent = '🔇';
+    }
+  });
 
   // ── 启动 ──
   renderCover();
